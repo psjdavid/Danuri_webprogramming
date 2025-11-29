@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventMap - 관리자 대시보드</title>
+    <link rel="stylesheet" href="event_manage.css">
+</head>
+<body>
+    <!-- 사이드바 -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-title">🎉 EventMap</div>
+            <div class="logo-subtitle">관리자</div>
+        </div>
+        <ul class="menu">
+            <li class="menu-item active" data-menu="dashboard">📊 대시보드</li>
+            <li class="menu-item" data-menu="api">🔗 API 연동 관리</li>
+            <li class="menu-item" data-menu="users">👥 회원 관리</li>
+            <li class="menu-item" data-menu="settings">⚙️ 설정</li>
+        </ul>
+    </aside>
+    
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <!-- 헤더 -->
+        <header class="header">
+            <div>
+                <div class="header-title">📊 오늘의 대시보드</div>
+                <div class="header-date">2025. 01. 21 (화)</div>
+            </div>
+            <div class="admin-profile">
+                <div class="admin-avatar">👤</div>
+                <span id="adminName">관리자</span>
+                <button class="logout-btn" onclick="handleLogout()" title="로그아웃">
+                    🚪 로그아웃
+                </button>
+            </div>
+        </header>
+        
+        <!-- 통계 카드 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">연동된 API</span>
+                    <span class="stat-icon">🔗</span>
+                </div>
+                <div class="stat-number" id="statApiCount">5</div>
+                <div class="stat-change">↑ 1개 추가됨</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">전체 이벤트</span>
+                    <span class="stat-icon">📍</span>
+                </div>
+                <div class="stat-number" id="statEventCount">142</div>
+                <div class="stat-change">↑ 28건 동기화됨</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">활성 회원</span>
+                    <span class="stat-icon">👥</span>
+                </div>
+                <div class="stat-number" id="statUserCount">1,234</div>
+                <div class="stat-change">↑ 45명 증가</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">신고 건수</span>
+                    <span class="stat-icon">⚠️</span>
+                </div>
+                <div class="stat-number" id="statReportCount">2</div>
+                <div class="stat-change" style="color: #e74c3c;">처리 필요</div>
+            </div>
+        </div>
+        
+        <!-- API 연동 관리 섹션 -->
+        <section class="api-section" id="apiSection">
+            <div class="section-header">
+                <div class="section-title">🔗 API 연동 관리</div>
+                <button class="add-api-btn" onclick="addNewAPI()">+ API 추가</button>
+            </div>
+            
+            <div class="api-list" id="apiList">
+                <!-- JavaScript로 동적 생성 -->
+            </div>
+        </section>
+        
+        <!-- 회원 관리 섹션 -->
+        <section class="user-section" id="userSection" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">👥 회원 관리</div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="userSearchInput" placeholder="이름, 이메일로 검색..." style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
+                    <button class="action-btn" onclick="searchUsers()">🔍 검색</button>
+                </div>
+            </div>
+            
+            <table class="event-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>이름</th>
+                        <th>이메일</th>
+                        <th>가입일</th>
+                        <th>상태</th>
+                        <th>경고 횟수</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <!-- JavaScript로 동적 생성 -->
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="action-btn" onclick="loadMoreUsers()">더 보기</button>
+            </div>
+        </section>
+        
+        <!-- 설정 섹션 -->
+        <section class="settings-section" id="settingsSection" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">⚙️ 설정</div>
+            </div>
+            
+            <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 18px; margin-bottom: 15px;">🎨 테마 설정</h3>
+                    <div style="display: flex; gap: 20px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="radio" name="theme" value="light" checked onchange="changeTheme('light')">
+                            <span>☀️ 라이트 모드</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="radio" name="theme" value="dark" onchange="changeTheme('dark')">
+                            <span>🌙 다크 모드</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="font-size: 18px; margin-bottom: 15px;">ℹ️ 시스템 정보</h3>
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 13px;">
+                        <div>버전: v1.0.0</div>
+                        <div>마지막 업데이트: 2025.01.21</div>
+                        <div>학번: 202300771</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 최근 동기화된 이벤트 -->
+        <section class="recent-events" id="recentEvents">
+            <div class="section-header">
+                <div class="section-title">📍 최근 동기화된 이벤트</div>
+            </div>
+            
+            <table class="event-table">
+                <thead>
+                    <tr>
+                        <th>API 이름</th>
+                        <th>출처</th>
+                        <th>이벤트 수</th>
+                        <th>상태</th>
+                        <th>동기화 시간</th>
+                    </tr>
+                </thead>
+                <tbody id="syncHistoryBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #999;">동기화 기록이 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+    
+    <script src="event_manage.js"></script>
+</body>
+</html>

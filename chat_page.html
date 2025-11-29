@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 - 다누리</title>
+    <link rel="stylesheet" href="chat_page.css">
+</head>
+<body>
+    <!-- 헤더 네비게이션 -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="main_page.html">🎉 다누리</a>
+            </div>
+
+            <nav class="nav">
+                <a href="main_page.html" class="nav-item">지도</a>
+                <a href="event_list.html" class="nav-item">이벤트</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="icon-btn" onclick="goToNotifications()">🔔</button>
+                <a href="my_page.html" class="profile-btn">
+                    <div class="avatar">👤</div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="chat-container">
+            <!-- 이벤트 정보 헤더 -->
+            <div class="event-info-header">
+                <button class="back-btn">← 뒤로</button>
+                <div class="event-info">
+                    <div class="event-image">
+                        <img id="eventImage" src="https://via.placeholder.com/60x60/667eea/ffffff?text=🎉" alt="이벤트">
+                    </div>
+                    <div class="event-details">
+                        <h2 class="event-title" id="eventTitle">이벤트 로딩 중...</h2>
+                        <p class="event-date" id="eventDate">📅 로딩 중...</p>
+                    </div>
+                </div>
+                <button class="info-btn" id="toggleParticipants">
+                    <span class="participant-count" id="participantCount">👥 0</span>
+                </button>
+            </div>
+
+            <!-- 채팅 영역 -->
+            <div class="chat-wrapper">
+                <!-- 채팅 메시지 영역 -->
+                <div class="chat-area">
+                    <div class="messages-container" id="messagesContainer">
+                        <!-- 메시지는 JavaScript에서 동적으로 로드됩니다 -->
+                        <!-- TODO: 서버에서 채팅 기록을 GET 요청으로 가져와서 표시 -->
+                        
+                        <!-- 입력 중 표시 (숨김 상태) -->
+                        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                            <div class="message other">
+                                <div class="message-avatar">
+                                    <img src="https://via.placeholder.com/40x40/10b981/ffffff?text=?" alt="입력중">
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble typing">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 메시지 입력 영역 -->
+                    <div class="message-input-area">
+                        <button class="attach-btn" title="파일 첨부">📎</button>
+                        <input type="text" 
+                               class="message-input" 
+                               id="messageInput"
+                               placeholder="메시지를 입력하세요..." 
+                               maxlength="500">
+                        <button class="emoji-btn" title="이모지">😊</button>
+                        <button class="send-btn" id="sendBtn">
+                            <span>보내기</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 참석자 목록 사이드바 -->
+                <aside class="participants-sidebar" id="participantsSidebar">
+                    <div class="sidebar-header">
+                        <h3>참석자 목록</h3>
+                        <button class="close-sidebar" id="closeSidebar">×</button>
+                    </div>
+
+                    <div class="search-participants">
+                        <input type="text" 
+                               class="search-input" 
+                               placeholder="참석자 검색...">
+                    </div>
+
+                    <div class="participants-count">
+                        <span>총 <strong id="totalParticipants">0</strong>명 참석</span>
+                    </div>
+
+                    <div class="participants-list" id="participantsList">
+                        <!-- 참석자 목록은 JavaScript에서 동적으로 로드됩니다 -->
+                        <!-- TODO: 서버에서 참석자 정보를 GET 요청으로 가져와서 표시 -->
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <script src="chat_page.js"></script>
+</body>
+</html>

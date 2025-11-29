@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그아웃 - 다누리</title>
+    <link rel="stylesheet" href="logout.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 로그아웃</h1>
+        <p>모든 로그인 정보가 삭제되었습니다.<br>다시 로그인해주세요.</p>
+        
+        <div class="info">
+            <strong>삭제된 정보:</strong>
+            <div class="info-item">• 로그인 상태</div>
+            <div class="info-item">• 사용자 ID</div>
+            <div class="info-item">• 이메일</div>
+            <div class="info-item">• 이름</div>
+            <div class="info-item">• 관리자 권한</div>
+        </div>
+        
+        <button class="btn" onclick="goToLogin()">로그인 페이지로</button>
+        
+        <div class="countdown">
+            <strong id="countdownText">3</strong>초 후 자동으로 이동합니다...
+        </div>
+    </div>
+
+    <script src="logout.js"></script>
+</body>
+</html>

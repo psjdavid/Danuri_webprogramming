@@ -1,0 +1,35 @@
+[
+    {
+        "id": "admin",
+        "password": "cse",
+        "name": "관리자",
+        "email": "admin@danuri.com",
+        "isAdmin": true,
+        "joinDate": "2025-11-27",
+        "lastLogin": "2025-11-27 13:25:04",
+        "profile": {
+            "interests": [
+                "문화",
+                "전시",
+                "교육"
+            ]
+        }
+    },
+    {
+        "id": "jinmi3096@gmail.com",
+        "password": "jjm1969!",
+        "name": "박성준",
+        "email": "jinmi3096@gmail.com",
+        "isAdmin": false,
+        "joinDate": "2025-11-27",
+        "lastLogin": "2025-11-30 00:37:38",
+        "profile": {
+            "interests": [
+                "음악",
+                "공연",
+                "문화",
+                "여행"
+            ]
+        }
+    }
+]

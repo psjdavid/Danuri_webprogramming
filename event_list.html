@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이벤트 목록 - 다누리</title>
+    <link rel="stylesheet" href="event_list.css">
+    <link rel="stylesheet" href="event_list_category_modal.css">
+</head>
+<body>
+    <!-- 헤더 네비게이션 -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="main_page.html">🎉 다누리</a>
+            </div>
+            <nav class="nav">
+                <a href="main_page.html" class="nav-item">지도</a>
+                <a href="event_list.html" class="nav-item active">이벤트</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="icon-btn" onclick="goToNotifications()">🔔</button>
+                <a href="my_page.html" class="profile-btn">
+                    <div class="avatar">👤</div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <!-- 검색 및 필터 영역 -->
+        <section class="search-section">
+            <div class="container">
+                <h1 class="page-title">이벤트 찾기</h1>
+                
+                <!-- 검색창 -->
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="이벤트명, 장소, 키워드로 검색하세요...">
+                    <button class="search-btn">🔍 검색</button>
+                </div>
+
+                <!-- 필터 버튼 그룹 -->
+                <div class="filter-container">
+                    <div class="filter-group">
+                        <button class="filter-btn active" data-category="all">전체</button>
+                        <button class="filter-btn" data-category="my-interests">💝 내 취향</button>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <select class="sort-select">
+                        <option value="latest">📅 최신순</option>
+                        <option value="rating">⭐ 별점순</option>
+                        <option value="popularity">🔥 인기순</option>
+                        <option value="participants">👥 참여순</option>
+                    </select>
+
+                        <button class="detail-filter-btn">⚙️ 상세필터</button>
+                    </div>
+                </div>
+
+                <!-- 상세 필터 패널 (숨김) -->
+                <div class="detail-filter-panel" id="detailFilterPanel">
+                    <div class="filter-row">
+                        <div class="filter-item">
+                            <label>날짜 범위</label>
+                            <div class="date-range">
+                                <input type="date" class="date-input">
+                                <span>~</span>
+                                <input type="date" class="date-input">
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label>지역</label>
+                            <select class="region-select">
+                                <option value="">전체 지역</option>
+                                <option value="daejeon">대전광역시</option>
+                                <option value="seoul">서울특별시</option>
+                                <option value="busan">부산광역시</option>
+                                <option value="gyeonggi">경기도</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>참가비</label>
+                            <select class="price-select">
+                                <option value="">전체</option>
+                                <option value="free">무료</option>
+                                <option value="paid">유료</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="reset-filter-btn">초기화</button>
+                        <button class="apply-filter-btn">적용</button>
+                    </div>
+                </div>
+
+                <!-- 검색 결과 정보 -->
+                <div class="result-info">
+                    <span class="result-count">총 <strong id="resultCount">0</strong>개의 이벤트</span>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="grid">⊞</button>
+                        <button class="view-btn" data-view="list">☰</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 이벤트 목록 -->
+        <section class="event-section">
+            <div class="container">
+                <div class="event-grid" id="eventGrid">
+                </div>
+
+                <!-- 페이지네이션 -->
+                <div class="pagination">
+                    <button class="page-btn" disabled>‹</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">4</button>
+                    <button class="page-btn">5</button>
+                    <span class="page-dots">...</span>
+                    <button class="page-btn">16</button>
+                    <button class="page-btn">›</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>다누리</h3>
+                    <p>지역 문화 이벤트를 한눈에</p>
+                </div>
+                <div class="footer-section">
+                    <h4>서비스</h4>
+                    <a href="#">이벤트 찾기</a>
+                    <a href="#">지도 보기</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 다누리. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script src = "event_list.js"></script>
+</body>
+</html>

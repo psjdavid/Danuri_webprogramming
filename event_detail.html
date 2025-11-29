@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>이벤트 상세 - 다누리</title>
+
+  <link rel="stylesheet" href="event_detail.css"/>
+</head>
+<body>
+
+  <!-- ===== 공통 헤더 ===== -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo">
+        <a href="main_page.html">🎉 다누리</a>
+      </div>
+
+      <nav class="nav">
+        <a href="main_page.html" class="nav-item">지도</a>
+        <a href="event_list.html" class="nav-item active">이벤트</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" onclick="goToNotifications()">🔔</button>
+        <a href="my_page.html" class="profile-btn">
+          <div class="avatar">👤</div>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== 상세 페이지 전용 헤더 ===== -->
+  <header class="detail-header">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="detail-header-actions">
+      <!-- 여기 하트가 ‘관심’(찜) 역할 -->
+      <button class="icon-btn like-btn" id="likeBtn">♡</button>
+      <button class="icon-btn share-btn" id="shareBtn">⤴️</button>
+    </div>
+  </header>
+
+  <!-- 이미지 슬라이더 -->
+  <div class="image-slider">
+    <div>🌸 대표 이미지 슬라이더</div>
+    <div class="slide-indicator">1 / 5</div>
+  </div>
+  
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <!-- 이벤트 헤더 -->
+    <section class="event-header">
+      <div class="event-title-section">
+        <h1 class="event-title" id="detail-title">🎪 벚꽃 축제 2025</h1>
+        <span class="event-category" id="detail-category">축제</span>
+      </div>
+      
+      <div class="event-rating">
+        <span class="rating-stars">⭐ 4.8</span>
+        <span>(324개 후기)</span>
+      </div>
+      
+      <div class="event-basic-info">
+        <div class="info-item">
+          <span class="info-icon">📅</span>
+          <span id="detail-date">2025. 4. 5(토) ~ 4. 7(월)</span>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">🕐</span>
+          <span id="detail-time">10:00 ~ 18:00</span>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">📍</span>
+          <div>
+            <div id="detail-location-main">서울시 영등포구 여의도공원 잔디광장</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 탭 메뉴 -->
+    <nav class="tab-menu">
+      <div class="tab-item active">상세정보</div>
+      <div class="tab-item">위치정보</div>
+      <div class="tab-item">참석자 (42명)</div>
+      <div class="tab-item">후기 (324)</div>
+    </nav>
+    
+    <!-- 탭 컨텐츠 -->
+    <div class="tab-content">
+      <!-- 상세정보 탭 -->
+      <section>
+        <h2 class="section-title">📝 상세 설명</h2>
+        <div class="description">
+          <!-- JS에서 채워짐 -->
+        </div>
+        
+        <div class="price-info">
+          <h3 class="section-title">💰 입장료</h3>
+          <div style="font-size: 20px; font-weight: bold; color: #4CAF50;">무료</div>
+        </div>
+        
+        <h2 class="section-title">👥 참석 예정자 (42명)</h2>
+        <div class="attendees">
+          <div class="attendee-avatars">
+            <div class="avatar">😊</div>
+            <div class="avatar">😁</div>
+            <div class="avatar">🙂</div>
+            <div class="avatar">😄</div>
+            <div class="avatar">😃</div>
+          </div>
+          <span style="color: #666;">외 37명</span>
+          <button class="more-btn">+ 더보기</button>
+        </div>
+      </section>
+      
+      <!-- 위치정보 탭 -->
+      <section style="display: none;">
+        <div class="map-section">
+          <div id="detailMap" class="map-container"></div>
+          <div class="marker-center"><span>📍</span></div>
+        </div>
+        
+        <div class="location-details">
+          <div class="location-item">
+            <div class="location-label">📍 주소</div>
+            <div class="location-content">
+              <span id="detail-address">주소 정보</span>
+              <button style="margin-left: 10px; padding: 5px 10px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer;">복사</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  
+  <!-- 하단 고정 버튼 (참석하기 제거, 채팅만 유지) -->
+  <div class="bottom-actions">
+    <button class="action-btn btn-secondary" id="chatEnterBtn">채팅방 입장</button>
+  </div>
+
+  <!-- Google Maps JS (callback=initDetailMap) -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_KEY&callback=initDetailMap"
+    async
+    defer
+  ></script>
+
+  <script src="event_detail.js"></script>
+</body>
+</html>

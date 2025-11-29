@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비밀번호 찾기 - 다누리</title>
+    <link rel="stylesheet" href="pw_setting.css">
+</head>
+<body>
+    <!-- 로고 헤더 -->
+    <header class="logo-header">
+        <a href="main_page.html" class="logo">🎉 다누리</a>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="reset-container">
+            <!-- 진행 단계 표시 -->
+            <div class="progress-steps">
+                <div class="step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">이메일 인증</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">인증 코드</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">비밀번호 재설정</div>
+                </div>
+            </div>
+
+            <!-- Step 1: 이메일 입력 -->
+            <div class="step-content active" id="step1">
+                <div class="step-icon">🔐</div>
+                <h1 class="step-title">비밀번호 찾기</h1>
+                <p class="step-description">
+                    가입하신 이메일 주소를 입력해주세요.<br>
+                    인증 코드를 발송해드립니다.
+                </p>
+
+                <form class="reset-form">
+                    <div class="form-group">
+                        <label for="email">이메일 주소</label>
+                        <input type="email" 
+                               id="email" 
+                               name="email"
+                               placeholder="example@email.com" 
+                               required>
+                        <span class="error-message" id="emailError"></span>
+                    </div>
+
+                    <button type="button" class="btn-primary" id="sendCodeBtn">
+                        인증 코드 발송
+                    </button>
+
+                    <div class="form-footer">
+                        <a href="login.html" class="link">로그인으로 돌아가기</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 2: 인증 코드 입력 -->
+            <div class="step-content" id="step2">
+                <div class="step-icon">✉️</div>
+                <h1 class="step-title">인증 코드 확인</h1>
+                <p class="step-description">
+                    <span id="emailDisplay"></span>로<br>
+                    발송된 6자리 인증 코드를 입력해주세요.
+                </p>
+
+                <form class="reset-form">
+                    <div class="form-group">
+                        <label>인증 코드</label>
+                        <div class="code-input-group">
+                            <input type="text" 
+                                   class="code-input" 
+                                   maxlength="1" 
+                                   pattern="[0-9]"
+                                   data-index="0">
+                            <input type="text" 
+                                   class="code-input" 
+                                   maxlength="1" 
+                                   pattern="[0-9]"
+                                   data-index="1">
+                            <input type="text" 
+                                   class="code-input" 
+                                   maxlength="1" 
+                                   pattern="[0-9]"
+                                   data-index="2">
+                            <input type="text" 
+                                   class="code-input" 
+                                   maxlength="1" 
+                                   pattern="[0-9]"
+                                   data-index="3">
+                            <input type="text" 
+                                   class="code-input" 
+                                   maxlength="1" 
+                                   pattern="[0-9]"
+                                   data-index="4">
+                            <input type="text" 
+                                   class="code-input" 
+                                   maxlength="1" 
+                                   pattern="[0-9]"
+                                   data-index="5">
+                        </div>
+                        <span class="error-message" id="codeError"></span>
+                    </div>
+
+                    <div class="timer-info">
+                        <span>⏱️ 남은 시간: <strong id="timer">3:00</strong></span>
+                    </div>
+
+                    <button type="button" class="btn-primary" id="verifyCodeBtn">
+                        인증 확인
+                    </button>
+
+                    <div class="form-footer">
+                        <span class="text-muted">코드를 받지 못하셨나요?</span>
+                        <button type="button" class="link-btn" id="resendCodeBtn">
+                            인증 코드 재발송
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 3: 새 비밀번호 설정 -->
+            <div class="step-content" id="step3">
+                <div class="step-icon">🔑</div>
+                <h1 class="step-title">새 비밀번호 설정</h1>
+                <p class="step-description">
+                    새로운 비밀번호를 입력해주세요.<br>
+                    보안을 위해 8자 이상의 영문, 숫자, 특수문자를 포함해주세요.
+                </p>
+
+                <form class="reset-form">
+                    <div class="form-group">
+                        <label for="newPassword">새 비밀번호</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" 
+                                   id="newPassword" 
+                                   name="newPassword"
+                                   placeholder="새 비밀번호 입력" 
+                                   required>
+                            <button type="button" class="toggle-password" data-target="newPassword">
+                                👁️
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                            <span class="strength-text">비밀번호 강도: <strong>-</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">비밀번호 확인</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" 
+                                   id="confirmPassword" 
+                                   name="confirmPassword"
+                                   placeholder="비밀번호 재입력" 
+                                   required>
+                            <button type="button" class="toggle-password" data-target="confirmPassword">
+                                👁️
+                            </button>
+                        </div>
+                        <span class="error-message" id="passwordError"></span>
+                    </div>
+
+                    <div class="password-requirements">
+                        <div class="requirement" id="req-length">
+                            <span class="req-icon">○</span>
+                            <span>8자 이상</span>
+                        </div>
+                        <div class="requirement" id="req-letter">
+                            <span class="req-icon">○</span>
+                            <span>영문 포함</span>
+                        </div>
+                        <div class="requirement" id="req-number">
+                            <span class="req-icon">○</span>
+                            <span>숫자 포함</span>
+                        </div>
+                        <div class="requirement" id="req-special">
+                            <span class="req-icon">○</span>
+                            <span>특수문자 포함</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-primary" id="resetPasswordBtn">
+                        비밀번호 변경
+                    </button>
+                </form>
+            </div>
+
+            <!-- Step 4: 완료 -->
+            <div class="step-content" id="step4">
+                <div class="success-animation">
+                    <div class="checkmark-circle">
+                        <div class="checkmark">✓</div>
+                    </div>
+                </div>
+                <h1 class="step-title">비밀번호 변경 완료!</h1>
+                <p class="step-description">
+                    새로운 비밀번호로 변경되었습니다.<br>
+                    이제 새 비밀번호로 로그인하실 수 있습니다.
+                </p>
+
+                <button type="button" class="btn-primary" id="goToLoginBtn">
+                    로그인하러 가기
+                </button>
+
+                <div class="form-footer">
+                    <a href="main_page.html" class="link">메인으로 돌아가기</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <p>&copy; 2025 다누리. All rights reserved.</p>
+    </footer>
+
+    <script src="pw_setting.js"></script>
+</body>
+</html>
