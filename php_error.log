@@ -1,0 +1,180 @@
+[05-Dec-2025 04:07:11 Asia/Seoul] PHP Fatal error:  Uncaught Error: Undefined constant "TOURAPI_KEY" in C:\Apache24\htdocs\TP\backend\event_api.php:290
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(336): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 290
+[05-Dec-2025 04:07:11 Asia/Seoul] PHP Fatal error:  Uncaught Error: Undefined constant "TOURAPI_KEY" in C:\Apache24\htdocs\TP\backend\event_api.php:290
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(336): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 290
+[05-Dec-2025 04:07:11 Asia/Seoul] PHP Fatal error:  Uncaught Error: Undefined constant "TOURAPI_KEY" in C:\Apache24\htdocs\TP\backend\event_api.php:290
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(336): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 290
+[05-Dec-2025 04:09:07 Asia/Seoul] PHP Fatal error:  Uncaught Error: Undefined constant "TOURAPI_KEY" in C:\Apache24\htdocs\TP\backend\event_api.php:290
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(336): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 290
+[05-Dec-2025 04:09:07 Asia/Seoul] PHP Fatal error:  Uncaught Error: Undefined constant "TOURAPI_KEY" in C:\Apache24\htdocs\TP\backend\event_api.php:290
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(336): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 290
+[05-Dec-2025 04:09:07 Asia/Seoul] PHP Fatal error:  Uncaught Error: Undefined constant "TOURAPI_KEY" in C:\Apache24\htdocs\TP\backend\event_api.php:290
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(336): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 290
+[05-Dec-2025 04:16:19 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:16:19 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:16:19 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:16:41 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:16:41 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:16:41 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:17:37 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:17:37 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:17:37 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:19:18 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:19:21 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:19:23 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:22:51 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:22:51 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:22:52 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:27:27 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:27:27 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:27:27 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:28:09 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:28:09 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:28:09 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:28:25 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('daejeon')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:28:25 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('busan')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310
+[05-Dec-2025 04:28:25 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined function curl_init() in C:\Apache24\htdocs\TP\backend\event_api.php:310
+Stack trace:
+#0 C:\Apache24\htdocs\TP\backend\event_api.php(395): callTourApiForRegion('seoul')
+#1 C:\Apache24\htdocs\TP\backend\event_api.php(33): handleGetFestivals()
+#2 {main}
+  thrown in C:\Apache24\htdocs\TP\backend\event_api.php on line 310

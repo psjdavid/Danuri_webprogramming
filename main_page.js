@@ -1,5 +1,5 @@
 // 학번: 202300771 이름: 박성준
-// main_page.js - 메인 페이지 + 사용자 위치 기반 주변 이벤트
+// main_page.js - 메인 페이지 (최신 TourAPI 버전)
 
 // ==============================
 // Google Maps 변수
@@ -10,14 +10,8 @@ let currentEvents = [];
 let userLocation = null;
 let currentRadius = 30; // 기본 반경 30km
 let allEventsCache = []; // 전체 이벤트 캐시
-
-// ==============================
-// 대전 / 부산 축제 API 설정
-// ==============================
-const DAEJEON_FESTIVAL_API_URL = 'https://apis.data.go.kr/6300000/openapi2022/festv/getfestv';
-const DAEJEON_API_KEY = '577f809b4049e298c064b73a321c74531af6a1ed55a7d711069d8e6f143619a6';
-const BUSAN_FESTIVAL_API_URL = 'https://apis.data.go.kr/6260000/FestivalService/getFestivalKr';
-const BUSAN_API_KEY = '577f809b4049e298c064b73a321c74531af6a1ed55a7d711069d8e6f143619a6';
+let userMarker = null; // 현재 위치 마커
+let infoWindow = null; // InfoWindow 객체
 
 // ==============================
 // 거리 계산 함수 (Haversine formula)
@@ -41,7 +35,6 @@ function getUserLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
       console.warn('Geolocation을 지원하지 않는 브라우저입니다.');
-      // 기본 위치: 대한민국 중심
       resolve({ lat: 36.5, lng: 127.8 });
       return;
     }
@@ -61,7 +54,6 @@ function getUserLocation() {
         console.error('❌ 위치 정보 가져오기 실패:', error.message);
         console.log('기본 위치 사용: 대한민국 중심');
         showNotification('⚠️ 위치 권한이 없어 기본 위치를 사용합니다.');
-        // 실패 시 대한민국 중심
         resolve({ lat: 36.5, lng: 127.8 });
       },
       {
@@ -74,169 +66,190 @@ function getUserLocation() {
 }
 
 // ==============================
-// API 데이터 가져오기
+// 🔥 최신 TourAPI로 축제 데이터 가져오기
 // ==============================
+
 async function fetchDaejeonFestivals() {
-  const url = new URL(DAEJEON_FESTIVAL_API_URL);
-  url.searchParams.set('serviceKey', DAEJEON_API_KEY);
+  const today = new Date();
+  const lastYear = new Date();
+  const nextYear = new Date();
+  lastYear.setFullYear(today.getFullYear() - 1);
+  nextYear.setFullYear(today.getFullYear() + 1);
+
+  const formatYYYYMMDD = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}${m}${d}`;
+  };
+
+  const url = new URL('https://apis.data.go.kr/B551011/KorService2/searchFestival2');
+  url.searchParams.set('serviceKey', '577f809b4049e298c064b73a321c74531af6a1ed55a7d711069d8e6f143619a6');
+  url.searchParams.set('MobileOS', 'ETC');
+  url.searchParams.set('MobileApp', 'TEST');
+  url.searchParams.set('_type', 'json');
+  url.searchParams.set('numOfRows', '100');
   url.searchParams.set('pageNo', '1');
-  url.searchParams.set('numOfRows', '50');
+  url.searchParams.set('areaCode', '3'); // 대전
+  url.searchParams.set('eventStartDate', formatYYYYMMDD(lastYear));
+  url.searchParams.set('eventEndDate', formatYYYYMMDD(nextYear));
 
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`대전 축제 API 호출 실패: HTTP ${res.status}`);
 
   const json = await res.json();
   const header = json.response?.header;
-  if (!header || (header.resultCode !== 'C00' && header.resultCode !== '00')) {
+  if (!header || header.resultCode !== '0000') {
     throw new Error(header?.resultMsg || '대전 축제 API 응답 에러');
   }
 
-  const items = json.response?.body?.items || [];
-
-  return items.map((r, idx) => ({
-    id: 'daejeon-' + (idx + 1),
-    title: r.festvNm || '제목 없음',
-    dateText: r.festvPrid || '일정 미정',
-    locationText: r.festvPlcNm || r.festvAddr || '장소 미정',
-    address: (r.festvAddr || '') + (r.festvDtlAddr ? ' ' + r.festvDtlAddr : ''),
-    summary: r.festvSumm || '상세 설명 없음',
-    host: r.festvHostNm || '주최자 미정',
-    priceText: '무료',
-    categoryLabel: '축제',
-    lat: parseFloat(r.festvLa || r.latitude || r.LAT) || null,
-    lng: parseFloat(r.festvLo || r.longitude || r.LNG) || null,
-  }));
+  const items = json.response?.body?.items?.item || [];
+  return normalizeFestivalData(items, 'daejeon');
 }
 
 async function fetchBusanFestivals() {
-  const url = new URL(BUSAN_FESTIVAL_API_URL);
-  url.searchParams.set('serviceKey', BUSAN_API_KEY);
+  const today = new Date();
+  const lastYear = new Date();
+  const nextYear = new Date();
+  lastYear.setFullYear(today.getFullYear() - 1);
+  nextYear.setFullYear(today.getFullYear() + 1);
+
+  const formatYYYYMMDD = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}${m}${d}`;
+  };
+
+  const url = new URL('https://apis.data.go.kr/B551011/KorService2/searchFestival2');
+  url.searchParams.set('serviceKey', '577f809b4049e298c064b73a321c74531af6a1ed55a7d711069d8e6f143619a6');
+  url.searchParams.set('MobileOS', 'ETC');
+  url.searchParams.set('MobileApp', 'TEST');
+  url.searchParams.set('_type', 'json');
+  url.searchParams.set('numOfRows', '100');
   url.searchParams.set('pageNo', '1');
-  url.searchParams.set('numOfRows', '50');
-  url.searchParams.set('resultType', 'json');
+  url.searchParams.set('areaCode', '6'); // 부산
+  url.searchParams.set('eventStartDate', formatYYYYMMDD(lastYear));
+  url.searchParams.set('eventEndDate', formatYYYYMMDD(nextYear));
 
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`부산 축제 API 호출 실패: HTTP ${res.status}`);
 
   const json = await res.json();
-  let items = [];
-
-  if (Array.isArray(json.response?.body?.items)) {
-    items = json.response.body.items;
-  } else if (Array.isArray(json.getFestivalKr?.item)) {
-    items = json.getFestivalKr.item;
-  } else if (Array.isArray(json.getFestivalKr?.body?.items)) {
-    items = json.getFestivalKr.body.items;
-  } else {
-    return [];
+  const header = json.response?.header;
+  if (!header || header.resultCode !== '0000') {
+    throw new Error(header?.resultMsg || '부산 축제 API 응답 에러');
   }
 
-  return items.map((r, idx) => ({
-    id: 'busan-' + (idx + 1),
-    title: r.festvNm || r.title || r.MAIN_TITLE || '제목 없음',
-    dateText: r.festvPrid || r.period || r.USAGE_DAY_WEEK_AND_TIME || '일정 미정',
-    locationText: r.festvPlcNm || r.addr1 || r.ADDR1 || r.festvAddr || '장소 미정',
-    address: (r.festvAddr || r.addr1 || r.ADDR1 || '') + (r.festvDtlAddr ? ' ' + r.festvDtlAddr : ''),
-    summary: r.festvSumm || r.SUBTITLE || '상세 설명 없음',
-    host: r.festvHostNm || '주최자 미정',
-    priceText: '무료',
-    categoryLabel: '축제',
-    lat: parseFloat(r.LAT || r.lat || r.latitude) || null,
-    lng: parseFloat(r.LNG || r.lng || r.longitude) || null,
-  }));
+  const items = json.response?.body?.items?.item || [];
+  return normalizeFestivalData(items, 'busan');
+}
+
+async function fetchSeoulFestivals() {
+  const today = new Date();
+  const lastYear = new Date();
+  const nextYear = new Date();
+  lastYear.setFullYear(today.getFullYear() - 1);
+  nextYear.setFullYear(today.getFullYear() + 1);
+
+  const formatYYYYMMDD = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}${m}${d}`;
+  };
+
+  const url = new URL('https://apis.data.go.kr/B551011/KorService2/searchFestival2');
+  url.searchParams.set('serviceKey', '577f809b4049e298c064b73a321c74531af6a1ed55a7d711069d8e6f143619a6');
+  url.searchParams.set('MobileOS', 'ETC');
+  url.searchParams.set('MobileApp', 'TEST');
+  url.searchParams.set('_type', 'json');
+  url.searchParams.set('numOfRows', '100');
+  url.searchParams.set('pageNo', '1');
+  url.searchParams.set('areaCode', '1'); // 서울
+  url.searchParams.set('eventStartDate', formatYYYYMMDD(lastYear));
+  url.searchParams.set('eventEndDate', formatYYYYMMDD(nextYear));
+
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`서울 축제 API 호출 실패: HTTP ${res.status}`);
+
+  const json = await res.json();
+  const header = json.response?.header;
+  if (!header || header.resultCode !== '0000') {
+    throw new Error(header?.resultMsg || '서울 축제 API 응답 에러');
+  }
+
+  const items = json.response?.body?.items?.item || [];
+  return normalizeFestivalData(items, 'seoul');
 }
 
 // ==============================
-// Geocoding으로 위경도 보완
+// 데이터 정규화
 // ==============================
-async function geocodeEvent(event) {
-  if (event.lat && event.lng) {
-    return event;
-  }
+function normalizeFestivalData(items, region) {
+  const formatTourDate = (yyyymmdd) => {
+    if (!yyyymmdd || yyyymmdd.length !== 8) return '';
+    const y = yyyymmdd.slice(0, 4);
+    const m = Number(yyyymmdd.slice(4, 6));
+    const d = Number(yyyymmdd.slice(6, 8));
+    return `${y}.${m}.${d}`;
+  };
 
-  if (!event.address && !event.locationText) {
-    console.warn('주소 정보 없음:', event.title);
-    return event;
-  }
+  const formatTourDateRange = (start, end) => {
+    const s = formatTourDate(start);
+    const e = formatTourDate(end);
+    if (s && e) return `${s} ~ ${e}`;
+    if (s && !e) return s;
+    if (!s && e) return e;
+    return '일정 미정';
+  };
 
-  return new Promise((resolve) => {
-    const geocoder = new google.maps.Geocoder();
-    const address = event.address || event.locationText;
+  return items.map((f, idx) => {
+    const title = (f.title || '').toLowerCase();
+    const catText = `${f.cat1 || ''} ${f.cat2 || ''} ${f.cat3 || ''}`.toLowerCase();
+    const searchText = `${title} ${catText}`;
 
-    setTimeout(() => {
-      geocoder.geocode({ 
-        address: address,
-        region: 'KR'
-      }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-          event.lat = results[0].geometry.location.lat();
-          event.lng = results[0].geometry.location.lng();
-          console.log('  ✅ Geocoding 성공:', event.title);
-        } else {
-          console.warn('  ❌ Geocoding 실패:', event.title);
-        }
-        resolve(event);
-      });
-    }, 200);
-  });
-}
+    const categories = [];
+    if (searchText.includes('음악') || searchText.includes('뮤직') || searchText.includes('콘서트'))
+      categories.push('음악');
+    if (searchText.includes('미술') || searchText.includes('전시') || searchText.includes('갤러리'))
+      categories.push('미술');
+    if (searchText.includes('스포츠') || searchText.includes('체육') || searchText.includes('경기'))
+      categories.push('스포츠');
+    if (searchText.includes('음식') || searchText.includes('푸드') || searchText.includes('맛'))
+      categories.push('푸드');
+    if (searchText.includes('공연') || searchText.includes('연극') || searchText.includes('뮤지컬'))
+      categories.push('공연');
 
-// ==============================
-// 주변 이벤트 필터링
-// ==============================
-async function getNearbyEvents(allEvents, userLat, userLng, maxDistance) {
-  console.log('=== 주변 이벤트 필터링 시작 ===');
-  console.log('사용자 위치:', userLat, userLng);
-  console.log('최대 거리:', maxDistance, 'km');
-  console.log('전체 이벤트 수:', allEvents.length);
-
-  // 샘플 로그
-  if (allEvents.length > 0) {
-    console.log('첫 번째 이벤트 샘플:');
-    const sample = allEvents[0];
-    console.log('  제목:', sample.title);
-    console.log('  위도:', sample.lat, '경도:', sample.lng);
-    console.log('  주소:', sample.address || sample.locationText);
-  }
-
-  // Geocoding (최대 15개)
-  const eventsWithCoords = [];
-  let geocodedCount = 0;
-  const MAX_GEOCODE = 15;
-
-  for (const event of allEvents) {
-    if (!event.lat || !event.lng) {
-      if (geocodedCount < MAX_GEOCODE) {
-        console.log(`Geocoding 시도 (${geocodedCount + 1}/${MAX_GEOCODE}):`, event.title);
-        const geocoded = await geocodeEvent(event);
-        eventsWithCoords.push(geocoded);
-        if (geocoded.lat && geocoded.lng) geocodedCount++;
-      } else {
-        eventsWithCoords.push(event);
-      }
-    } else {
-      eventsWithCoords.push(event);
+    if (!categories.includes('축제')) {
+      categories.push('축제');
     }
-  }
 
-  console.log('위경도 있는 이벤트 수:', eventsWithCoords.filter(e => e.lat && e.lng).length);
+    const categoryLabel = categories[0] || '축제';
 
-  // 거리 계산 및 필터링
-  const nearby = eventsWithCoords
-    .filter(ev => ev.lat && ev.lng)
-    .map(ev => {
-      const distance = calculateDistance(userLat, userLng, ev.lat, ev.lng);
-      return { ...ev, distance };
-    })
-    .filter(ev => ev.distance <= maxDistance)
-    .sort((a, b) => a.distance - b.distance);
+    let imageUrl = f.firstimage || f.firstimage2 || '';
+    if (imageUrl && imageUrl.startsWith('http://')) {
+      imageUrl = imageUrl.replace('http://', 'https://');
+    }
 
-  console.log('✅ 주변 이벤트 수:', nearby.length);
-  if (nearby.length > 0) {
-    console.log('가장 가까운 이벤트:', nearby[0].title, `(${nearby[0].distance.toFixed(1)}km)`);
-  }
-  
-  return nearby;
+    return {
+      id: region + '-' + (f.contentid || (idx + 1)),
+      regionCode: region,
+      title: f.title || '제목 없음',
+      dateText: formatTourDateRange(f.eventstartdate, f.eventenddate),
+      eventstartdate: f.eventstartdate,
+      eventenddate: f.eventenddate,
+      locationText: f.addr1 || f.addr2 || '장소 미정',
+      address: (f.addr1 || '') + (f.addr2 ? ' ' + f.addr2 : ''),
+      priceText: '무료',
+      categoryLabel,
+      categories,
+      imageUrl,
+      // 🔥 좌표 정보 (mapy=위도, mapx=경도)
+      lat: parseFloat(f.mapy) || null,
+      lng: parseFloat(f.mapx) || null
+    };
+  }).filter(event => event.lat && event.lng); // 좌표 있는 것만 필터링
 }
 
 // ==============================
@@ -247,332 +260,344 @@ async function initMap() {
 
   // 사용자 위치 가져오기
   userLocation = await getUserLocation();
-  console.log('사용자 위치 설정 완료:', userLocation);
+  console.log('사용자 위치:', userLocation);
 
   // 지도 생성
   map = new google.maps.Map(document.getElementById('map'), {
     center: userLocation,
-    zoom: 12,
-    disableDefaultUI: false,
-    zoomControl: true,
+    zoom: 11,
     mapTypeControl: false,
-    streetViewControl: true,
+    streetViewControl: false,
     fullscreenControl: true,
+    zoomControl: true
   });
 
-  // 사용자 위치 마커 (파란색)
-  new google.maps.Marker({
+  console.log('지도 생성 완료');
+
+  // 🔥 InfoWindow 생성
+  infoWindow = new google.maps.InfoWindow();
+
+  // 🔥 현재 위치 마커 추가
+  userMarker = new google.maps.Marker({
     position: userLocation,
     map: map,
-    title: '내 위치',
+    title: '현재 위치',
     icon: {
       path: google.maps.SymbolPath.CIRCLE,
-      scale: 8,
+      scale: 12,
       fillColor: '#4285F4',
       fillOpacity: 1,
-      strokeColor: '#FFF',
-      strokeWeight: 2,
-    }
+      strokeColor: '#ffffff',
+      strokeWeight: 3
+    },
+    zIndex: 1000
+  });
+
+  // 현재 위치 마커 클릭 시
+  userMarker.addListener('click', () => {
+    infoWindow.setContent(`
+      <div style="padding: 10px; font-family: sans-serif;">
+        <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #1a73e8;">📍 현재 위치</h3>
+        <p style="margin: 0; font-size: 14px; color: #5f6368;">여기에 계십니다</p>
+      </div>
+    `);
+    infoWindow.open(map, userMarker);
   });
 
   // 이벤트 데이터 로드
-  await loadEvents();
+  await loadAllEvents();
+
+  // 반경 변경 이벤트
+  document.getElementById('radiusSelect').addEventListener('change', (e) => {
+    currentRadius = parseInt(e.target.value);
+    console.log('반경 변경:', currentRadius, 'km');
+    filterAndDisplayEvents();
+  });
+
+  // 슬라이더 토글
+  document.getElementById('toggleSliderBtn').addEventListener('click', toggleSlider);
 }
 
 window.initMap = initMap;
 
 // ==============================
-// 이벤트 데이터 로드
+// 모든 이벤트 로드
 // ==============================
-async function loadEvents() {
-  console.log('이벤트 데이터 로드 시작');
-  
-  let allEvents = [];
-
+async function loadAllEvents() {
   try {
-    const daejeon = await fetchDaejeonFestivals();
-    allEvents = allEvents.concat(daejeon);
-    console.log('대전 축제:', daejeon.length, '개');
-  } catch (e) {
-    console.error('대전 축제 API 오류:', e);
+    console.log('이벤트 데이터 로딩 시작...');
+
+    const [daejeon, busan, seoul] = await Promise.all([
+      fetchDaejeonFestivals().catch(err => {
+        console.error('대전 축제 로드 실패:', err);
+        return [];
+      }),
+      fetchBusanFestivals().catch(err => {
+        console.error('부산 축제 로드 실패:', err);
+        return [];
+      }),
+      fetchSeoulFestivals().catch(err => {
+        console.error('서울 축제 로드 실패:', err);
+        return [];
+      })
+    ]);
+
+    allEventsCache = [...daejeon, ...busan, ...seoul];
+    console.log('전체 이벤트 로드 완료:', allEventsCache.length);
+
+    filterAndDisplayEvents();
+
+  } catch (error) {
+    console.error('이벤트 로드 오류:', error);
+    showNotification('❌ 이벤트 데이터를 불러오는 중 오류가 발생했습니다.');
   }
-
-  try {
-    const busan = await fetchBusanFestivals();
-    allEvents = allEvents.concat(busan);
-    console.log('부산 축제:', busan.length, '개');
-  } catch (e) {
-    console.error('부산 축제 API 오류:', e);
-  }
-
-  console.log('전체 이벤트:', allEvents.length, '개');
-
-  // 테스트 데이터 추가
-  if (allEvents.length === 0) {
-    console.warn('⚠️ API 실패, 테스트 데이터 사용');
-    allEvents = [
-      {
-        id: 'test-1',
-        title: '서울 벚꽃 축제',
-        dateText: '2025.04.01 ~ 2025.04.10',
-        locationText: '여의도 한강공원',
-        address: '서울특별시 영등포구 여의동로',
-        categoryLabel: '축제',
-        lat: 37.5289,
-        lng: 126.9366
-      },
-      {
-        id: 'test-2',
-        title: '대전 과학축제',
-        dateText: '2025.05.01 ~ 2025.05.07',
-        locationText: '대전 엑스포과학공원',
-        address: '대전광역시 유성구 대덕대로',
-        categoryLabel: '축제',
-        lat: 36.3736,
-        lng: 127.3840
-      }
-    ];
-  }
-
-  // 전체 데이터 캐싱
-  allEventsCache = allEvents;
-
-  // 필터링 및 렌더링
-  await filterAndRenderEvents();
 }
 
 // ==============================
-// 필터링 및 렌더링
+// 필터링 및 표시
 // ==============================
-async function filterAndRenderEvents() {
-  console.log('=== 필터링 및 렌더링 시작 ===');
-  console.log('사용자 위치:', userLocation);
-  console.log('현재 반경:', currentRadius, 'km');
-  console.log('캐시된 이벤트 수:', allEventsCache.length);
-
+function filterAndDisplayEvents() {
   if (!userLocation) {
-    console.error('❌ 사용자 위치가 없습니다!');
-    currentEvents = allEventsCache;
-  } else if (allEventsCache.length > 0) {
-    currentEvents = await getNearbyEvents(allEventsCache, userLocation.lat, userLocation.lng, currentRadius);
-    console.log(`${currentRadius}km 이내 이벤트:`, currentEvents.length, '개');
-  } else {
-    console.warn('캐시된 이벤트가 없습니다.');
-    currentEvents = [];
+    console.warn('사용자 위치 정보가 없습니다.');
+    return;
   }
 
-  // 렌더링
-  renderMarkers(currentEvents);
-  renderEventCards(currentEvents);
+  console.log(`반경 ${currentRadius}km 내 이벤트 필터링...`);
+
+  // 반경 내 이벤트 필터링
+  currentEvents = allEventsCache.filter(event => {
+    if (!event.lat || !event.lng) return false;
+    
+    const distance = calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      event.lat,
+      event.lng
+    );
+    
+    event.distance = distance; // 거리 정보 저장
+    return distance <= currentRadius;
+  });
+
+  // 거리순 정렬
+  currentEvents.sort((a, b) => a.distance - b.distance);
+
+  console.log('필터링된 이벤트:', currentEvents.length);
+
+  // 마커 및 카드 표시
+  displayMarkers();
+  displayEventCards();
+
+  if (currentEvents.length === 0) {
+    showNotification(`⚠️ 반경 ${currentRadius}km 내에 이벤트가 없습니다.`);
+  } else {
+    showNotification(`📍 반경 ${currentRadius}km 내 ${currentEvents.length}개 이벤트 발견!`);
+  }
 }
 
 // ==============================
-// 지도 마커 렌더링
+// 마커 표시
 // ==============================
-function clearMarkers() {
-  markers.forEach(m => m.setMap(null));
+function displayMarkers() {
+  // 기존 마커 제거
+  markers.forEach(marker => marker.setMap(null));
   markers = [];
-}
 
-function renderMarkers(events) {
-  if (!map) return;
-  clearMarkers();
-
-  events.forEach((ev) => {
-    if (!ev.lat || !ev.lng) return;
-
+  // 새 마커 생성
+  currentEvents.forEach(event => {
+    // 🔥 기본 구글맵 마커 사용
     const marker = new google.maps.Marker({
-      position: { lat: ev.lat, lng: ev.lng },
-      map,
-      title: ev.title,
+      position: { lat: event.lat, lng: event.lng },
+      map: map,
+      title: event.title,
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
         scale: 10,
-        fillColor: '#FF6B6B',
-        fillOpacity: 1,
-        strokeColor: '#FFF',
-        strokeWeight: 2,
+        fillColor: '#667eea',
+        fillOpacity: 0.9,
+        strokeColor: '#ffffff',
+        strokeWeight: 2
       }
     });
 
-    const infoWindow = new google.maps.InfoWindow({
-      content: `
-        <div style="padding: 10px; max-width: 200px;">
-          <h3 style="margin: 0 0 5px 0; font-size: 14px; font-weight: bold;">${ev.title}</h3>
-          <p style="margin: 0; font-size: 12px; color: #666;">📍 ${ev.locationText}</p>
-          ${ev.distance ? `<p style="margin: 5px 0 0 0; font-size: 11px; color: #999;">🚶 ${ev.distance.toFixed(1)}km</p>` : ''}
-        </div>
-      `
-    });
-
+    // 🔥 마커 클릭 시 InfoWindow 표시
     marker.addListener('click', () => {
+      const infoContent = `
+        <div style="padding: 12px; max-width: 280px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <div style="margin-bottom: 10px;">
+            <span style="display: inline-block; padding: 4px 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 11px; font-weight: 700; border-radius: 6px;">
+              ${event.categoryLabel}
+            </span>
+            <span style="display: inline-block; margin-left: 8px; padding: 4px 10px; background: #f0f4ff; color: #667eea; font-size: 11px; font-weight: 700; border-radius: 6px;">
+              ${event.distance.toFixed(1)}km
+            </span>
+          </div>
+          <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: 700; color: #1a1a2e; line-height: 1.4;">
+            ${event.title}
+          </h3>
+          <div style="margin-bottom: 8px; font-size: 13px; color: #64748b;">
+            📅 ${event.dateText}
+          </div>
+          <div style="margin-bottom: 12px; font-size: 13px; color: #64748b;">
+            📍 ${event.locationText}
+          </div>
+          <button onclick="goToEventDetail('${event.id}')" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+            상세보기
+          </button>
+        </div>
+      `;
+      
+      infoWindow.setContent(infoContent);
       infoWindow.open(map, marker);
+      
+      // 지도 중심 이동
       map.panTo(marker.getPosition());
-    });
-
-    marker.addListener('dblclick', () => {
-      goToEventDetail(ev.id);
     });
 
     markers.push(marker);
   });
 
-  console.log('마커', markers.length, '개 표시 완료');
+  console.log('마커 표시 완료:', markers.length);
 }
 
 // ==============================
-// 이벤트 카드 렌더링
+// 🔥 이벤트 카드 표시 (개선된 디자인)
 // ==============================
-function renderEventCards(events) {
+function displayEventCards() {
   const container = document.getElementById('event-cards');
-  if (!container) return;
-
-  container.innerHTML = '';
-
-  if (!events.length) {
-    container.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">주변에 이벤트가 없습니다.</p>';
+  
+  if (currentEvents.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: #999;">
+        <p style="font-size: 48px; margin-bottom: 10px;">🔍</p>
+        <p style="font-size: 16px;">주변에 이벤트가 없습니다</p>
+        <p style="font-size: 14px; margin-top: 5px;">반경을 늘려보세요</p>
+      </div>
+    `;
     return;
   }
 
-  events.slice(0, 10).forEach((ev) => {
-    const card = document.createElement('div');
-    card.className = 'event-card';
-    card.style.cssText = 'cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;';
-
-    const distanceText = ev.distance ? `🚶 ${ev.distance.toFixed(1)}km` : '';
-
-    let imageSrc = 'asset/daejeon.png';
-    if (ev.id && ev.id.startsWith('busan-')) {
-      imageSrc = 'asset/busan.png';
-    } else if (ev.id && ev.id.startsWith('daejeon-')) {
-      imageSrc = 'asset/daejeon.png';
-    }
-
-    card.innerHTML = `
-      <div class="event-image">
-        <img src="${imageSrc}" alt="${ev.title}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+  container.innerHTML = currentEvents.map(event => `
+    <div class="event-card" onclick="goToEventDetail('${event.id}')">
+      <div class="event-card-image">
+        ${event.imageUrl 
+          ? `<img src="${event.imageUrl}" alt="${event.title}" 
+                 onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;color:white;font-size:48px;\\'>🎪</div>';">` 
+          : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;color:white;font-size:48px;">🎪</div>`
+        }
+        <span class="event-card-badge">${event.categoryLabel}</span>
+        <span class="event-card-distance">${event.distance.toFixed(1)}km</span>
       </div>
-      <div class="event-info">
-        <div class="event-title" style="font-weight: bold; margin-bottom: 8px;">${ev.title}</div>
-        <div class="event-details" style="font-size: 13px; color: #666;">
-          ${ev.dateText ? `<div>📅 ${ev.dateText}</div>` : ''}
-          ${ev.locationText ? `<div>📍 ${ev.locationText}</div>` : ''}
-          ${distanceText ? `<div style="color: #4CAF50; font-weight: 500;">${distanceText}</div>` : ''}
+      <div class="event-card-content">
+        <h4 class="event-card-title">${event.title}</h4>
+        <div class="event-card-info">
+          <span class="event-card-date">📅 ${event.dateText}</span>
+          <span class="event-card-location">📍 ${event.locationText}</span>
         </div>
       </div>
-    `;
+    </div>
+  `).join('');
 
-    card.addEventListener('mouseenter', () => {
-      card.style.transform = 'translateY(-4px)';
-      card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-    });
-
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-      card.style.boxShadow = '';
-    });
-
-    card.addEventListener('click', () => {
-      goToEventDetail(ev.id);
-    });
-
-    container.appendChild(card);
-  });
-
-  console.log('이벤트 카드', events.slice(0, 10).length, '개 렌더링 완료');
+  console.log('이벤트 카드 표시 완료:', currentEvents.length);
 }
 
 // ==============================
-// 이벤트 상세 페이지로 이동
+// 유틸리티 함수
 // ==============================
+
 function goToEventDetail(eventId) {
-  if (!eventId) return;
-  console.log('이벤트 상세로 이동:', eventId);
-  window.location.href = `event_detail.html?id=${eventId}`;
+  window.location.href = `event_detail.html?id=${encodeURIComponent(eventId)}`;
 }
 
-// ==============================
-// 현재 위치로 이동
-// ==============================
-window.moveToCurrentLocation = function() {
-  if (!map || !userLocation) return;
-  map.panTo(userLocation);
-  map.setZoom(14);
-  showNotification('📍 현재 위치로 이동했습니다.');
-};
+function scrollToEventCard(eventId) {
+  const card = Array.from(document.querySelectorAll('.event-card'))
+    .find(card => card.onclick.toString().includes(eventId));
+  
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    card.style.animation = 'highlight 0.5s ease';
+  }
+}
 
-// ==============================
-// 검색 기능
-// ==============================
-window.handleSearch = function(event) {
+function moveToCurrentLocation() {
+  if (map && userLocation) {
+    map.setCenter(userLocation);
+    map.setZoom(13);
+    showNotification('📍 현재 위치로 이동했습니다');
+  }
+}
+
+function toggleSlider() {
+  const slider = document.querySelector('.event-slider');
+  const btn = document.getElementById('toggleSliderBtn');
+  const cards = document.getElementById('event-cards');
+  
+  if (slider.classList.contains('collapsed')) {
+    slider.classList.remove('collapsed');
+    cards.style.display = 'flex';
+    btn.textContent = '↓';
+  } else {
+    slider.classList.add('collapsed');
+    cards.style.display = 'none';
+    btn.textContent = '↑';
+  }
+}
+
+function handleSearch(event) {
   if (event.key === 'Enter') {
     const query = event.target.value.trim();
     if (query) {
       window.location.href = `event_list.html?search=${encodeURIComponent(query)}`;
     }
   }
-};
-
-// ==============================
-// 알림 함수
-// ==============================
-function showNotification(message) {
-  const existing = document.querySelector('.notification');
-  if (existing) existing.remove();
-
-  const notification = document.createElement('div');
-  notification.className = 'notification';
-  notification.textContent = message;
-  notification.style.cssText = `
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,.85); color: #fff; padding: 16px 32px; border-radius: 50px;
-    font-size: 15px; font-weight: 500; z-index: 10000;
-    box-shadow: 0 4px 20px rgba(0,0,0,.3);
-  `;
-  document.body.appendChild(notification);
-  setTimeout(() => notification.remove(), 2600);
 }
 
-// ==============================
-// 알림 페이지 이동
-// ==============================
-window.goToNotifications = function() {
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  if (!isLoggedIn) {
-    alert('로그인이 필요한 서비스입니다.');
-    window.location.href = 'login.html?next=notification.html';
-    return;
-  }
-  window.location.href = 'notification.html';
-};
+function goToNotifications() {
+  alert('🔔 알림 기능은 준비 중입니다.');
+}
 
-// ==============================
-// 페이지 로드 시 실행
-// ==============================
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('Main Page DOMContentLoaded');
+function showNotification(message) {
+  const existing = document.querySelector('.toast-notification');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,.85); color: #fff; padding: 16px 32px; border-radius: 50px;
+    font-size: 15px; font-weight: 500; z-index: 10000; animation: slideUp .3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,.3); backdrop-filter: blur(10px);
+  `;
+  document.body.appendChild(toast);
   
-  // 반경 선택 이벤트
-  const radiusSelect = document.getElementById('radiusSelect');
-  if (radiusSelect) {
-    radiusSelect.addEventListener('change', async (e) => {
-      currentRadius = parseInt(e.target.value);
-      console.log('반경 변경:', currentRadius, 'km');
-      showNotification(`📍 반경 ${currentRadius}km로 변경되었습니다.`);
-      await filterAndRenderEvents();
-    });
-  }
+  setTimeout(() => {
+    toast.style.animation = 'slideDown .3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// 애니메이션 키프레임
+(function injectStyles() {
+  if (document.getElementById('main-page-styles')) return;
   
-  // 슬라이더 토글 기능
-  const toggleBtn = document.getElementById('toggleSliderBtn');
-  const slider = document.querySelector('.event-slider');
-  
-  if (toggleBtn && slider) {
-    toggleBtn.addEventListener('click', () => {
-      slider.classList.toggle('collapsed');
-      toggleBtn.textContent = slider.classList.contains('collapsed') ? '↑' : '↓';
-    });
-  }
-});
+  const style = document.createElement('style');
+  style.id = 'main-page-styles';
+  style.textContent = `
+    @keyframes slideUp {
+      from { opacity: 0; transform: translate(-50%, 20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    @keyframes slideDown {
+      from { opacity: 1; transform: translate(-50%, 0); }
+      to { opacity: 0; transform: translate(-50%, 20px); }
+    }
+    @keyframes highlight {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3); }
+    }
+  `;
+  document.head.appendChild(style);
+})();
 
 console.log('Main Page JavaScript 로드 완료 - 학번: 202300771');

@@ -1,19 +1,12 @@
 [
     {
         "id": "admin",
-        "password": "cse",
+        "password": "$2y$12$Y\/9FIJhTDL09URUX\/s86n.J2MwE8ymaKdMTFfoc\/HLk7r17pQXZ.G",
         "name": "관리자",
         "email": "admin@danuri.com",
         "isAdmin": true,
-        "joinDate": "2025-11-27",
-        "lastLogin": "2025-11-27 13:25:04",
-        "profile": {
-            "interests": [
-                "문화",
-                "전시",
-                "교육"
-            ]
-        }
+        "joinDate": "2025-12-05",
+        "lastLogin": null
     },
     {
         "id": "jinmi3096@gmail.com",
@@ -21,14 +14,13 @@
         "name": "박성준",
         "email": "jinmi3096@gmail.com",
         "isAdmin": false,
-        "joinDate": "2025-11-27",
-        "lastLogin": "2025-11-30 00:37:38",
+        "joinDate": "2025-12-04",
+        "lastLogin": "2025-12-05 04:03:52",
         "profile": {
             "interests": [
                 "음악",
-                "공연",
-                "문화",
-                "여행"
+                "미술",
+                "문화"
             ]
         }
     }

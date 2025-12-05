@@ -1,5 +1,5 @@
 // 학번: 202300771 이름: 박성준
-// my_page.js - 마이페이지 (simple_backend.php 연동)
+// my_page.js - 마이페이지 (JSON 파일 저장 버전)
 
 // ==============================
 // API 엔드포인트
@@ -91,7 +91,7 @@ function checkLogin() {
 }
 
 // ==============================
-// 프로필 로드
+// 🔥 수정: 프로필 로드 (JSON 파일에서 가져오기)
 // ==============================
 async function loadProfile() {
   try {
@@ -103,7 +103,8 @@ async function loadProfile() {
     
     console.log('프로필 로드 시도:', userId);
     
-    const res = await fetch(`${API_URL}?action=get_profile&userId=${userId}`);
+    // user_api.php에서 JSON 파일 데이터 가져오기
+    const res = await fetch('./backend/user_api.php?action=profile');
     const data = await res.json();
     
     console.log('프로필 API 응답:', data);
@@ -113,6 +114,10 @@ async function loadProfile() {
     }
     
     userData = data.data;
+    
+    // localStorage에도 저장 (event_list.js에서 사용)
+    localStorage.setItem(`userData_${userId}`, JSON.stringify(userData));
+    
     console.log('✅ 프로필 로드 성공:', userData);
     console.log('관심사:', userData.profile?.interests);
     
@@ -121,24 +126,30 @@ async function loadProfile() {
   } catch (error) {
     console.error('❌ 프로필 로드 실패:', error);
     
-    // 폴백: localStorage 사용
-    userData = {
-      id: localStorage.getItem('userId'),
-      name: localStorage.getItem('userName') || '사용자',
-      email: localStorage.getItem('currentUserEmail') || '',
-      isAdmin: localStorage.getItem('isAdmin') === 'true',
-      profile: {
-        interests: ['음악', '미술', '스포츠', '푸드', '자연']
-      }
-    };
-    console.log('폴백 모드: localStorage 사용', userData);
+    // 폴백: localStorage에서 가져오기
+    const userId = localStorage.getItem('userId');
+    const cachedData = localStorage.getItem(`userData_${userId}`);
+    
+    if (cachedData) {
+      userData = JSON.parse(cachedData);
+      console.log('📦 캐시된 데이터 사용:', userData);
+    } else {
+      // 기본값
+      userData = {
+        id: userId,
+        name: localStorage.getItem('userName') || '사용자',
+        email: localStorage.getItem('currentUserEmail') || '',
+        isAdmin: localStorage.getItem('isAdmin') === 'true',
+        profile: {
+          interests: []
+        }
+      };
+      console.log('⚠️ 기본값 사용:', userData);
+    }
+    
     updateUI();
   }
 }
-
-// ==============================
-// 찜한 이벤트 로드
-// ==============================
 async function loadLikedEvents() {
   console.log('=== 좋아요 목록 로드 시작 ===');
   
@@ -572,6 +583,10 @@ function openEditInterestsModal() {
   });
 }
 
+
+// ==============================
+// 🔥 수정: 관심사 저장 (JSON 파일에 저장)
+// ==============================
 window.saveInterests = async function() {
   const selected = Array.from(document.querySelectorAll('.interest-option.selected'))
     .map(btn => btn.dataset.interest);
@@ -588,10 +603,15 @@ window.saveInterests = async function() {
     
     console.log('관심사 저장 요청:', { userId, interests: selected });
     
-    const res = await fetch(`${API_URL}?action=update_profile`, {
+    // 🔥 user_api.php를 사용하여 JSON 파일에 저장
+    const res = await fetch('./backend/user_api.php?action=update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, interests: selected })
+      body: JSON.stringify({ 
+        profile: {
+          interests: selected
+        }
+      })
     });
     
     const data = await res.json();
@@ -599,29 +619,26 @@ window.saveInterests = async function() {
     console.log('관심사 저장 응답:', data);
     
     if (data.success) {
+      // 서버에서 받은 최신 데이터로 업데이트
       userData = data.data;
-      console.log('✅ 관심사 저장 성공, 업데이트된 userData:', userData);
-      console.log('저장된 관심사:', userData.profile?.interests);
+      
+      // 🔥 localStorage에도 저장 (event_list.js에서 사용)
+      localStorage.setItem(`userData_${userId}`, JSON.stringify(userData));
+      
+      console.log('✅ 관심사 JSON 파일에 저장 성공:', userData.profile?.interests);
       
       updateUI();
       closeModal();
       showNotification('관심사가 업데이트되었습니다');
     } else {
-      throw new Error(data.message);
+      throw new Error(data.message || '저장 실패');
     }
   } catch (error) {
-    console.error('❌ 관심사 수정 실패:', error);
-    
-    // 폴백: 로컬 업데이트
-    if (!userData.profile) userData.profile = {};
-    userData.profile.interests = selected;
-    console.log('폴백 모드: 로컬 업데이트', userData);
-    
-    updateUI();
-    closeModal();
-    showNotification('관심사가 업데이트되었습니다');
+    console.error('❌ 관심사 저장 실패:', error);
+    alert('관심사 저장에 실패했습니다: ' + error.message);
   }
 };
+
 
 // ==============================
 // 이벤트 리스너 설정
