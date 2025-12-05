@@ -9,7 +9,13 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // 에러 리포팅 (개발 중에만)
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
+// 브라우저 출력 X
+ini_set('display_errors', 0);
+
+// 대신 로그 파일에 적기
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php_error.log');
 
 // JSON 응답 헤더
 header('Content-Type: application/json; charset=utf-8');

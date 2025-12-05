@@ -1,0 +1,70 @@
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error');
+
+  if (error) {
+    alert('카카오 로그인 실패: ' + error);
+    window.location.href = 'login.html';
+  } else if (!code) {
+    alert('code가 없습니다.');
+    window.location.href = 'login.html';
+  } else {
+    // ✅ 절대 경로 또는 현재 폴더 기준 경로로 수정
+    fetch('/TP/backend/auth.php?action=kakao_login', {
+    // 또는 fetch('backend/auth.php?action=kakao_login', {  도 가능
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    })
+    .then(async (res) => {
+      const text = await res.text();
+      console.log('서버 원 응답:', text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('JSON 파싱 오류:', e);
+        alert('서버에서 JSON이 아닌 응답을 받았습니다.\n\n' + text);
+        window.location.href = 'login.html';
+        return;
+      }
+
+      if (!res.ok || !data.success) {
+        alert(data.message || '카카오 로그인 처리 실패');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // 서버에서 오는 data 구조에 맞게 안전하게 꺼내기
+      const payload = data.data || {};
+
+      // 1) 서버가 user 객체를 주는 경우
+      // 2) 지금처럼 kakaoId / nickname만 주는 경우 둘 다 처리
+      const user = payload.user || {
+        id:    payload.kakaoId,
+        name:  payload.nickname,
+        email: payload.email || ''   // 지금은 이메일 안 쓰니까 빈 값
+      };
+
+      const isAdmin = payload.isAdmin ? 'true' : 'false';
+
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('currentUserEmail', user.email || '');
+      localStorage.setItem('userName', user.name || user.nickname || '카카오유저');
+      localStorage.setItem('userId', user.id);
+      localStorage.setItem('isAdmin', isAdmin);
+
+      // 관리자면 이벤트 관리 페이지, 아니면 메인 페이지
+      window.location.href = (isAdmin === 'true')
+        ? 'event_manage.html'
+        : 'main_page.html';
+    })
+    .catch((err) => {
+      console.error('fetch 자체 오류:', err);
+      alert('카카오 로그인 처리 중 네트워크 오류가 발생했습니다.');
+      window.location.href = 'login.html';
+    });
+  }
+</script>

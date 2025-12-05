@@ -1,0 +1,18 @@
+[
+    {
+        "id": "daejeon-api",
+        "name": "대전광역시 축제 API",
+        "url": "https:\/\/apis.data.go.kr\/6300000\/openapi2022\/festv\/getfestv",
+        "apiKey": "577f809b4049e298c064b73a321c74531af6a1ed55a7d711069d8e6f143619a6",
+        "isActive": true,
+        "source": "대전광역시"
+    },
+    {
+        "id": "busan-api",
+        "name": "부산광역시 축제 API",
+        "url": "https:\/\/apis.data.go.kr\/6260000\/FestivalService\/getFestivalKr",
+        "apiKey": "577f809b4049e298c064b73a321c74531af6a1ed55a7d711069d8e6f143619a6",
+        "isActive": true,
+        "source": "부산광역시"
+    }
+]
