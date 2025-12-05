@@ -1,5 +1,4 @@
 <?php
-// 학번: 202300771 이름: 박성준
 // event_api.php - 찜하기/좋아요 기능 API
 
 require_once __DIR__ . '/config.php';

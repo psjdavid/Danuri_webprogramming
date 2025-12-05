@@ -304,8 +304,9 @@ a {
 }
 
 .message.other {
-    align-self: flex-start;
+  justify-content: flex-start;
 }
+
 
 .message.mine {
     align-self: flex-end;

@@ -4,7 +4,7 @@
 // ==============================
 // API 엔드포인트
 // ==============================
-const API_BASE = '/backend';
+const API_BASE = '/TP/backend';  // ← 수정됨: /backend → /TP/backend
 const USER_API = `${API_BASE}/user_api.php`;
 
 // ==============================

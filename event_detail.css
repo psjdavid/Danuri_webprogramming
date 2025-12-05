@@ -204,3 +204,45 @@ body {
   from { opacity: 1; transform: translate(-50%, 0); }
   to { opacity: 0; transform: translate(-50%, 20px); }
 }
+
+/* 위치정보 탭 - 길찾기/버튼 UI */
+.btn-inline {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.btn-inline:first-of-type {
+  margin-left: 0;
+}
+.btn-inline:hover {
+  background: #f3f4f6;
+}
+
+.route-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.route-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.route-summary {
+  font-size: 14px;
+  color: #444;
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 6px;
+  border: 1px dashed #e5e7eb;
+  line-height: 1.5;
+}

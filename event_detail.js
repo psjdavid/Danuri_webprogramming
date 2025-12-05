@@ -13,11 +13,22 @@ const shareBtn = document.getElementById('shareBtn');
 const tabMenuItems = document.querySelectorAll('.tab-menu .tab-item');
 const tabContents = document.querySelectorAll('.tab-content section');
 const chatEnterBtn = document.getElementById('chatEnterBtn');
+const currentLocationText = document.getElementById('current-location-text');
+const btnUseCurrentLocation = document.getElementById('btnUseCurrentLocation');
+const btnRouteTransit = document.getElementById('btnRouteTransit');
+const btnRouteDriving = document.getElementById('btnRouteDriving');
+const btnRouteWalking = document.getElementById('btnRouteWalking');
+const btnOpenParking = document.getElementById('btnOpenParking');
+const routeSummaryEl = document.getElementById('routeSummary');
 
 // ==================== Google Maps 변수 ====================
 let detailMap = null;
 let detailMarker = null;
 let currentEventData = null;
+let userLocationMarker = null;
+let userLatLng = null;
+let directionsService = null;
+let directionsRenderer = null;
 
 // ==================== 이미지 슬라이더 변수 ====================
 let currentImageIndex = 0;
@@ -296,6 +307,16 @@ async function initDetailMap() {
     fullscreenControl: true,
   });
   
+  directionsService = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer({
+    map: detailMap,
+    suppressMarkers: false,
+    polylineOptions: {
+      strokeColor: '#FF6B6B',
+      strokeWeight: 5
+    }
+  });
+
   console.log('Google Maps 초기화 완료');
   await initDetailPage();
 }
@@ -339,6 +360,181 @@ function displayMapMarker(eventData) {
     }
   });
 }
+
+function updateCurrentLocationText(text) {
+  if (currentLocationText) {
+    currentLocationText.textContent = text;
+  }
+}
+
+function requestUserLocation() {
+  if (!navigator.geolocation) {
+    showNotification('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');
+    return;
+  }
+
+  updateCurrentLocationText('현위치를 불러오는 중입니다...');
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      userLatLng = new google.maps.LatLng(latitude, longitude);
+
+      if (userLocationMarker) {
+        userLocationMarker.setMap(null);
+      }
+
+      userLocationMarker = new google.maps.Marker({
+        position: userLatLng,
+        map: detailMap,
+        title: '내 위치',
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#4285F4',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2
+        }
+      });
+
+      if (detailMap) {
+        detailMap.panTo(userLatLng);
+        detailMap.setZoom(14);
+      }
+
+      updateCurrentLocationText(
+        `현재 위치: 위도 ${latitude.toFixed(4)}, 경도 ${longitude.toFixed(4)}`
+      );
+      showNotification('📍 현위치를 불러왔습니다.');
+    },
+    (err) => {
+      console.error('geolocation error:', err);
+      updateCurrentLocationText('현위치를 가져오지 못했습니다. 위치 권한을 확인해 주세요.');
+      showNotification('⚠️ 위치 정보를 가져오지 못했습니다.');
+    }
+  );
+}
+
+function requestRoute(travelMode) {
+  if (!directionsService || !directionsRenderer) {
+    console.warn('Directions 서비스가 초기화되지 않았습니다.');
+    return;
+  }
+
+  if (!userLatLng) {
+    showNotification('먼저 "현위치 불러오기"를 눌러주세요.');
+    return;
+  }
+
+  if (!currentEventData && !detailMarker) {
+    showNotification('목적지 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+
+  let destinationLatLng = null;
+
+  if (currentEventData && currentEventData.lat && currentEventData.lng) {
+    destinationLatLng = new google.maps.LatLng(currentEventData.lat, currentEventData.lng);
+  } else if (detailMarker) {
+    destinationLatLng = detailMarker.getPosition();
+  }
+
+  if (!destinationLatLng) {
+    showNotification('목적지 좌표를 찾을 수 없습니다.');
+    return;
+  }
+
+  const request = {
+    origin: userLatLng,
+    destination: destinationLatLng,
+    travelMode
+  };
+
+  if (travelMode === google.maps.TravelMode.TRANSIT) {
+    request.transitOptions = {
+      modes: [google.maps.TransitMode.BUS, google.maps.TransitMode.SUBWAY]
+    };
+  }
+
+  if (routeSummaryEl) {
+    routeSummaryEl.textContent = '경로를 불러오는 중입니다...';
+  }
+
+  directionsService.route(request, (result, status) => {
+    if (status === 'OK') {
+      directionsRenderer.setDirections(result);
+      const leg = result.routes[0].legs[0];
+      const modeLabel =
+        travelMode === google.maps.TravelMode.TRANSIT
+          ? '대중교통'
+          : travelMode === google.maps.TravelMode.DRIVING
+          ? '자동차'
+          : '도보';
+
+      let html = `
+        <div>
+          <strong>${modeLabel}</strong> 기준 예상 소요시간은
+          <strong>${leg.duration.text}</strong>,
+          거리 <strong>${leg.distance.text}</strong> 입니다.
+        </div>
+      `;
+
+      const arrivalTime = leg.arrival_time ? leg.arrival_time.text : null;
+      const departureTime = leg.departure_time ? leg.departure_time.text : null;
+
+      if (arrivalTime || departureTime) {
+        html += '<div style="margin-top:4px;">';
+        if (departureTime) html += `출발: ${departureTime} `;
+        if (arrivalTime) html += ` / 도착: ${arrivalTime}`;
+        html += '</div>';
+      }
+
+      const steps = leg.steps || [];
+      if (steps.length) {
+        html += '<ul style="margin-top:6px; padding-left:18px;">';
+        steps.slice(0, 4).forEach((step) => {
+          const inst = step.instructions
+            ? step.instructions.replace(/<[^>]+>/g, '')
+            : '';
+          html += `<li>${inst || step.travel_mode}</li>`;
+        });
+        html += '</ul>';
+      }
+
+      if (routeSummaryEl) {
+        routeSummaryEl.innerHTML = html;
+      }
+    } else {
+      console.warn('Directions 요청 실패:', status);
+      if (routeSummaryEl) {
+        routeSummaryEl.textContent =
+          '경로를 찾지 못했습니다. 다른 교통수단을 시도하거나, 구글 지도 앱에서 다시 시도해 주세요.';
+      }
+      showNotification('경로 정보를 불러오지 못했습니다.');
+    }
+  });
+}
+
+function openParkingInGoogleMaps() {
+  let destLatLng = null;
+
+  if (currentEventData && currentEventData.lat && currentEventData.lng) {
+    destLatLng = { lat: currentEventData.lat, lng: currentEventData.lng };
+  } else if (detailMarker) {
+    const p = detailMarker.getPosition();
+    destLatLng = { lat: p.lat(), lng: p.lng() };
+  }
+
+  if (!destLatLng) {
+    showNotification('목적지 위치를 아직 불러오지 못했습니다.');
+    return;
+  }
+
+  const url = `https://www.google.com/maps/search/%EC%A3%BC%EC%B0%A8%EC%9E%A5/@${destLatLng.lat},${destLatLng.lng},17z`;
+  window.open(url, '_blank');
+}
+
 
 function tryFallbackGeocoding(address) {
   const region = address.match(/서울|부산|대전|대구|인천|광주|울산|세종/)?.[0];
@@ -637,9 +833,13 @@ if (chatEnterBtn) {
   });
 }
 
+// 알림 페이지로 이동
 function goToNotifications() {
-  alert('🔔 알림 기능은 준비 중입니다.');
+  // 이미 알림 페이지면 굳이 이동 안 해도 되지만,
+  // 새로고침 느낌으로 그냥 보내도 문제 없음
+  window.location.href = 'notification.html';
 }
+
 
 // ==================== 초기화 ====================
 async function initDetailPage() {
@@ -699,5 +899,32 @@ async function initDetailPage() {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOMContentLoaded - Google Maps 로드 대기 중...');
 });
+
+// 위치정보 탭 버튼들 이벤트
+if (btnUseCurrentLocation) {
+  btnUseCurrentLocation.addEventListener('click', requestUserLocation);
+}
+
+if (btnRouteTransit) {
+  btnRouteTransit.addEventListener('click', () =>
+    requestRoute(google.maps.TravelMode.TRANSIT)
+  );
+}
+
+if (btnRouteDriving) {
+  btnRouteDriving.addEventListener('click', () =>
+    requestRoute(google.maps.TravelMode.DRIVING)
+  );
+}
+
+if (btnRouteWalking) {
+  btnRouteWalking.addEventListener('click', () =>
+    requestRoute(google.maps.TravelMode.WALKING)
+  );
+}
+
+if (btnOpenParking) {
+  btnOpenParking.addEventListener('click', openParkingInGoogleMaps);
+}
 
 console.log('Event Detail JavaScript 로드 완료 - 학번: 202300771');

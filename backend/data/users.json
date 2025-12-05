@@ -15,7 +15,7 @@
         "email": "jinmi3096@gmail.com",
         "isAdmin": false,
         "joinDate": "2025-12-04",
-        "lastLogin": "2025-12-05 14:56:38",
+        "lastLogin": "2025-12-05 22:27:42",
         "profile": {
             "interests": [
                 "음악",
@@ -24,6 +24,20 @@
                 "축제",
                 "문화"
             ]
+        }
+    },
+    {
+        "id": "parkhyerin80",
+        "password": "$2y$12$PULrwWosC16qSK8Pvqi5o.CZlQlP4CUlO.lOksPbu8CeQpwQ7MMlS",
+        "name": "박혜린",
+        "email": "parkhyerin80@gmail.com",
+        "isAdmin": false,
+        "joinDate": "2025-12-05",
+        "lastLogin": "2025-12-05 22:25:20",
+        "profile": {
+            "bio": "",
+            "location": "",
+            "interests": []
         }
     }
 ]

@@ -1,5 +1,4 @@
 <?php
-// 학번: 202300771 이름: 박성준
 // user_api.php - 회원가입 및 사용자 관리 API
 
 require_once 'config.php';
@@ -73,8 +72,8 @@ function handleRegister() {
         sendError('이미 사용 중인 이메일입니다.', 409);
     }
     
-    // 관리자 아이디 예약어 확인
-    if (strtolower($userId) === ADMIN_ID) {
+    // 관리자 아이디 예약어 확인 (수정됨)
+    if (strtolower($userId) === strtolower(ADMIN_ID)) {
         sendError('사용할 수 없는 아이디입니다.', 400);
     }
     

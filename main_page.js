@@ -552,9 +552,13 @@ function handleSearch(event) {
   }
 }
 
+// 알림 페이지로 이동
 function goToNotifications() {
-  alert('🔔 알림 기능은 준비 중입니다.');
+  // 이미 알림 페이지면 굳이 이동 안 해도 되지만,
+  // 새로고침 느낌으로 그냥 보내도 문제 없음
+  window.location.href = 'notification.html';
 }
+
 
 function showNotification(message) {
   const existing = document.querySelector('.toast-notification');

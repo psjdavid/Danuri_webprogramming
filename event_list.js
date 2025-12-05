@@ -383,13 +383,23 @@ function applyFilters() {
 function applyMyInterestsFilter() {
   const userInterests = getUserInterests();
   
+  console.log('=== 내 취향 필터 실행 ===');
+  console.log('사용자 관심사:', userInterests);
+  console.log('전체 이벤트 수:', allEvents.length);
+  
   if (userInterests.length === 0) {
     alert('마이페이지에서 관심사를 설정해주세요!');
     filteredEvents = [...allEvents];
   } else {
     filteredEvents = allEvents.filter(event => {
-      return event.categories.some(cat => userInterests.includes(cat));
+      const match = event.categories.some(cat => userInterests.includes(cat));
+      if (match) {
+        console.log(`✅ 매칭: ${event.title} - 카테고리: [${event.categories.join(', ')}]`);
+      }
+      return match;
     });
+    
+    console.log('필터링된 이벤트 수:', filteredEvents.length);
     
     if (filteredEvents.length === 0) {
       alert('관심사와 일치하는 이벤트가 없습니다.');
@@ -490,9 +500,13 @@ function toggleLike(event, eventId) {
   }
 }
 
+// 알림 페이지로 이동
 function goToNotifications() {
-  alert('🔔 알림 기능은 준비 중입니다.');
+  // 이미 알림 페이지면 굳이 이동 안 해도 되지만,
+  // 새로고침 느낌으로 그냥 보내도 문제 없음
+  window.location.href = 'notification.html';
 }
+
 
 // ==================== 초기화 ====================
 

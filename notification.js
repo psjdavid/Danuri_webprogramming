@@ -1,442 +1,351 @@
 // 학번: 202300771 이름: 박성준
-// notification.js - 알림 페이지 인터랙션 처리
+// notification.js - 관심 축제 D-7 알림 페이지
 
-// DOM 요소 선택
-const tabBtns = document.querySelectorAll('.tab-btn');
-const notificationCards = document.querySelectorAll('.notification-card');
-const deleteBtns = document.querySelectorAll('.delete-btn');
-const markAllReadBtn = document.getElementById('markAllRead');
-const deleteAllBtn = document.getElementById('deleteAll');
-const notificationList = document.querySelector('.notification-list');
-const emptyState = document.querySelector('.empty-state');
+// 🔔 알림 페이지로 이동 (헤더 종 아이콘에서 사용)
+function goToNotifications() {
+  if (!location.pathname.endsWith('notification.html')) {
+    window.location.href = 'notification.html';
+  }
+}
+window.goToNotifications = goToNotifications;
 
-// 알림 데이터 (localStorage에서 관리)
-let notifications = [];
+// 토스트 알림 유틸
+function showToast(message) {
+  const existing = document.querySelector('.toast-notification');
+  if (existing) existing.remove();
 
-// 초기화
-function init() {
-    loadNotifications();
-    updateBadges();
-    setupEventListeners();
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 500;
+    z-index: 10000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    animation: slideUp 0.3s ease;
+  `;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = 'slideDown 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
-// 알림 데이터 로드
-function loadNotifications() {
-    const saved = localStorage.getItem('notifications');
-    if (saved) {
-        notifications = JSON.parse(saved);
-    } else {
-        // 초기 알림 데이터 (현재 HTML의 알림들을 기반으로)
-        notifications = Array.from(notificationCards).map((card, index) => ({
-            id: `notif_${Date.now()}_${index}`,
-            type: card.dataset.type,
-            isRead: !card.classList.contains('unread'),
-            timestamp: Date.now() - (index * 3600000) // 시간차를 두고 생성
-        }));
-        saveNotifications();
-    }
-}
-
-// 알림 데이터 저장
-function saveNotifications() {
-    localStorage.setItem('notifications', JSON.stringify(notifications));
-}
-
-// 배지 업데이트
-function updateBadges() {
-    const counts = {
-        all: 0,
-        event: 0,
-        participate: 0,
-        system: 0
-    };
-
-    notificationCards.forEach(card => {
-        if (!card.classList.contains('hidden')) {
-            counts.all++;
-            const type = card.dataset.type;
-            if (counts[type] !== undefined) {
-                counts[type]++;
-            }
-        }
-    });
-
-    tabBtns.forEach(btn => {
-        const type = btn.dataset.type;
-        const badge = btn.querySelector('.badge');
-        if (badge && counts[type] !== undefined) {
-            badge.textContent = counts[type];
-        }
-    });
-
-    // 빈 상태 체크
-    checkEmptyState();
-}
-
-// 1) 도우미: 매번 현재 DOM 기준으로 카드 가져오기
-function getCards() {
-  return Array.from(document.querySelectorAll('.notification-card'));
-}
-
-// 2) 배지 업데이트: 정적 리스트 대신 getCards() 사용 + DOM 포함 여부 체크
-function updateBadges() {
-  const counts = { all: 0, event: 0, participate: 0, system: 0 };
-
-  getCards().forEach(card => {
-    // 이미 DOM에서 빠진 카드면 스킵 (안전)
-    if (!document.contains(card)) return;
-
-    if (!card.classList.contains('hidden')) {
-      counts.all++;
-      const type = card.dataset.type;
-      if (type in counts) counts[type]++;
-    }
-  });
-
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    const type = btn.dataset.type;
-    const badge = btn.querySelector('.badge');
-    if (badge && type in counts) badge.textContent = String(counts[type]);
-  });
-
-  checkEmptyState();
-}
-
-// 3) 상태 저장도 매번 현재 DOM을 사용
-function saveNotificationState() {
-  const state = getCards().map(card => ({
-    isRead: !card.classList.contains('unread'),
-    // 현재 DOM에 있으면 미삭제, 없으면 삭제
-    isDeleted: !document.contains(card)
-  }));
-  localStorage.setItem('notificationState', JSON.stringify(state));
-}
-
-// 이벤트 리스너 설정
-function setupEventListeners() {
-    // 탭 필터링
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // 모든 탭에서 active 제거
-            tabBtns.forEach(b => b.classList.remove('active'));
-            // 클릭된 탭에 active 추가
-            btn.classList.add('active');
-            
-            const filterType = btn.dataset.type;
-            filterNotifications(filterType);
-        });
-    });
-
-    // 개별 삭제 버튼
-    deleteBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const card = btn.closest('.notification-card');
-            deleteNotification(card);
-        });
-    });
-
-    // 알림 카드 클릭 (읽음 처리)
-    notificationCards.forEach(card => {
-        card.addEventListener('click', (e) => {
-            // 삭제 버튼이나 링크 클릭시에는 읽음 처리하지 않음
-            if (e.target.classList.contains('delete-btn') || 
-                e.target.classList.contains('notification-link')) {
-                return;
-            }
-            markAsRead(card);
-        });
-    });
-
-    // 모두 읽음 처리
-    markAllReadBtn.addEventListener('click', markAllAsRead);
-
-    // 모두 삭제
-    deleteAllBtn.addEventListener('click', deleteAllNotifications);
-}
-
-// 알림 필터링
-function filterNotifications(type) {
-    let visibleCount = 0;
-    
-    notificationCards.forEach(card => {
-        if (type === 'all' || card.dataset.type === type) {
-            card.classList.remove('hidden');
-            visibleCount++;
-        } else {
-            card.classList.add('hidden');
-        }
-    });
-
-    // 시간 그룹 레이블 표시/숨김 처리
-    document.querySelectorAll('.time-group').forEach(group => {
-        const visibleCards = group.querySelectorAll('.notification-card:not(.hidden)');
-        if (visibleCards.length === 0) {
-            group.style.display = 'none';
-        } else {
-            group.style.display = 'flex';
-        }
-    });
-
-    checkEmptyState();
-    console.log(`필터: ${type}, 표시된 알림: ${visibleCount}개`);
-}
-
-// 알림 읽음 처리
-function markAsRead(card) {
-    if (card.classList.contains('unread')) {
-        card.classList.remove('unread');
-        updateBadges();
-        showNotification('알림을 읽음 처리했습니다');
-        saveNotificationState();
-    }
-}
-
-// 모두 읽음 처리
-function markAllAsRead() {
-    const unreadCards = document.querySelectorAll('.notification-card.unread:not(.hidden)');
-    
-    if (unreadCards.length === 0) {
-        showNotification('읽지 않은 알림이 없습니다');
-        return;
-    }
-
-    unreadCards.forEach(card => {
-        card.classList.remove('unread');
-    });
-
-    updateBadges();
-    saveNotificationState();
-    showNotification(`${unreadCards.length}개의 알림을 읽음 처리했습니다`);
-}
-
-// 알림 삭제
-function deleteNotification(card) {
-    if (confirm('이 알림을 삭제하시겠습니까?')) {
-        card.classList.add('deleting');
-        
-        setTimeout(() => {
-            card.remove();
-            updateBadges();
-            saveNotificationState();
-            showNotification('알림이 삭제되었습니다');
-        }, 300);
-    }
-}
-
-// 모두 삭제
-function deleteAllNotifications() {
-    const visibleCards = document.querySelectorAll('.notification-card:not(.hidden)');
-    
-    if (visibleCards.length === 0) {
-        showNotification('삭제할 알림이 없습니다');
-        return;
-    }
-
-    if (confirm(`${visibleCards.length}개의 알림을 모두 삭제하시겠습니까?`)) {
-        visibleCards.forEach((card, index) => {
-            setTimeout(() => {
-                card.classList.add('deleting');
-                setTimeout(() => {
-                    card.remove();
-                    
-                    // 마지막 카드 삭제 후 업데이트
-                    if (index === visibleCards.length - 1) {
-                        updateBadges();
-                        saveNotificationState();
-                        showNotification('모든 알림이 삭제되었습니다');
-                    }
-                }, 300);
-            }, index * 50); // 순차적으로 삭제
-        });
-    }
-}
-
-// 빈 상태 체크
-function checkEmptyState() {
-    const visibleCards = document.querySelectorAll('.notification-card:not(.hidden)');
-    
-    if (visibleCards.length === 0) {
-        notificationList.style.display = 'none';
-        emptyState.style.display = 'block';
-    } else {
-        notificationList.style.display = 'flex';
-        emptyState.style.display = 'none';
-    }
-}
-
-// 알림 상태 저장
-function saveNotificationState() {
-    const state = [];
-    notificationCards.forEach(card => {
-        state.push({
-            isRead: !card.classList.contains('unread'),
-            isDeleted: card.classList.contains('deleting') || !document.contains(card)
-        });
-    });
-    localStorage.setItem('notificationState', JSON.stringify(state));
-}
-
-// 알림 토스트 표시
-function showNotification(message) {
-    // 기존 알림 제거
-    const existing = document.querySelector('.toast-notification');
-    if (existing) {
-        existing.remove();
-    }
-
-    // 새 알림 생성
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification';
-    toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.85);
-        color: white;
-        padding: 16px 32px;
-        border-radius: 50px;
-        font-size: 15px;
-        font-weight: 500;
-        z-index: 10000;
-        animation: slideUp 0.3s ease;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(10px);
-    `;
-
-    document.body.appendChild(toast);
-
-    // 3초 후 제거
-    setTimeout(() => {
-        toast.style.animation = 'slideDown 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// 애니메이션 CSS 추가
-const style = document.createElement('style');
-style.textContent = `
+// 애니메이션 스타일 주입 (없으면 한 번만)
+(function injectAnimOnce() {
+  if (document.getElementById('notification-anim-style')) return;
+  const style = document.createElement('style');
+  style.id = 'notification-anim-style';
+  style.textContent = `
     @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translate(-50%, 20px);
-        }
-        to {
-            opacity: 1;
-            transform: translate(-50%, 0);
-        }
+      from { opacity:0; transform: translate(-50%, 20px); }
+      to   { opacity:1; transform: translate(-50%, 0); }
     }
-    
     @keyframes slideDown {
-        from {
-            opacity: 1;
-            transform: translate(-50%, 0);
-        }
-        to {
-            opacity: 0;
-            transform: translate(-50%, 20px);
-        }
+      from { opacity:1; transform: translate(-50%, 0); }
+      to   { opacity:0; transform: translate(-50%, 20px); }
     }
-`;
-document.head.appendChild(style);
+  `;
+  document.head.appendChild(style);
+})();
 
-// 스크롤시 헤더 그림자 효과
-window.addEventListener('scroll', () => {
-    const header = document.querySelector('.header');
-    if (window.pageYOffset > 10) {
-        header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)';
-    } else {
-        header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-    }
-});
-
-// 실시간 알림 시뮬레이션 (5초마다)
-let notificationCounter = 0;
-function simulateNewNotification() {
-    notificationCounter++;
-    
-    // 알림 벨 아이콘에 배지 표시
-    const iconBtn = document.querySelector('.icon-btn.active');
-    if (iconBtn && !iconBtn.querySelector('.notification-badge')) {
-        const badge = document.createElement('span');
-        badge.className = 'notification-badge';
-        badge.textContent = '1';
-        badge.style.cssText = `
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #ef4444;
-            color: white;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 10px;
-            border: 2px solid white;
-        `;
-        iconBtn.appendChild(badge);
-    }
-    
-    console.log('새 알림이 도착했습니다!');
+// 날짜 파싱: event.eventstartdate(YYYYMMDD) → Date
+function parseYYYYMMDD(str) {
+  if (!str || !/^\d{8}$/.test(str)) return null;
+  const y = parseInt(str.slice(0, 4), 10);
+  const m = parseInt(str.slice(4, 6), 10) - 1;
+  const d = parseInt(str.slice(6, 8), 10);
+  const dt = new Date(y, m, d);
+  if (isNaN(dt.getTime())) return null;
+  return dt;
 }
 
-// 10초마다 새 알림 시뮬레이션 (개발용)
-// setInterval(simulateNewNotification, 10000);
+// 날짜 파싱: event.date("2025.3.1 ~ 2025.3.3" 등)에서 첫 날짜 찾기
+function parseFromDateText(text) {
+  if (!text) return null;
+  const match = text.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+  if (!match) return null;
+  const y = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10) - 1;
+  const d = parseInt(match[3], 10);
+  const dt = new Date(y, m, d);
+  if (isNaN(dt.getTime())) return null;
+  return dt;
+}
 
-// 페이지 로드시 초기화
+// 공통 포맷: Date → "YYYY.MM.DD"
+function formatDate(dt) {
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const d = String(dt.getDate()).padStart(2, '0');
+  return `${y}.${m}.${d}`;
+}
+
+// 시작일 계산
+function getEventStartDate(ev) {
+  // 1) TourAPI 정규화 객체처럼 eventstartdate가 있을 때
+  if (ev.eventstartdate) {
+    const dt = parseYYYYMMDD(ev.eventstartdate);
+    if (dt) return dt;
+  }
+
+  // 2) 마이페이지에서 쓰는 date 문자열에서 추출
+  if (ev.date) {
+    const dt = parseFromDateText(ev.date);
+    if (dt) return dt;
+  }
+
+  return null;
+}
+
+// D-day 계산
+function calcDiffDays(startDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const s = new Date(startDate.getTime());
+  s.setHours(0, 0, 0, 0);
+  const diffMs = s - today;
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
+
+// 알림 카드 하나 만들기
+function createNotificationCard(ev) {
+  const startDate = getEventStartDate(ev);
+  if (!startDate) return null;
+
+  const diffDays = calcDiffDays(startDate);
+  if (diffDays < 0 || diffDays > 7) return null; // 0~7일만
+
+  const article = document.createElement('article');
+  article.className = 'notification-card unread'; // 항상 새 알림 느낌
+  article.dataset.type = 'event';
+
+  const icon = document.createElement('div');
+  icon.className = 'notification-icon event-icon';
+  icon.textContent = '🎉';
+
+  const content = document.createElement('div');
+  content.className = 'notification-content';
+
+  const header = document.createElement('div');
+  header.className = 'notification-header';
+
+  const title = document.createElement('h3');
+  title.className = 'notification-title';
+
+  if (diffDays === 0) {
+    title.textContent = `${ev.title || '축제'}가 오늘 시작됩니다!`;
+  } else {
+    title.textContent = `${ev.title || '축제'}가 곧 시작돼요 (D-${diffDays})`;
+  }
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'delete-btn';
+  deleteBtn.title = '삭제';
+  deleteBtn.textContent = '×';
+  deleteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    article.classList.add('deleting');
+    setTimeout(() => {
+      article.remove();
+      updateEmptyState();
+      showToast('알림이 삭제되었습니다');
+    }, 300);
+  });
+
+  header.appendChild(title);
+  header.appendChild(deleteBtn);
+
+  const text = document.createElement('p');
+  text.className = 'notification-text';
+
+  const startStr = formatDate(startDate);
+  const locationText = ev.location || ev.locationText || ev.addr1 || '장소 미정';
+
+  if (diffDays === 0) {
+    text.innerHTML = `
+      오늘부터 <strong>${startStr}</strong>에 시작하는 축제예요.<br/>
+      <strong>${locationText}</strong>에서 열려요.
+    `;
+  } else {
+    text.innerHTML = `
+      축제 시작까지 <strong>D-${diffDays}</strong>일 남았어요.<br/>
+      시작일은 <strong>${startStr}</strong>, 장소는 <strong>${locationText}</strong>입니다.
+    `;
+  }
+
+  const footer = document.createElement('div');
+  footer.className = 'notification-footer';
+
+  const time = document.createElement('span');
+  time.className = 'notification-time';
+  time.textContent = `시작일: ${startStr} (D-${diffDays < 0 ? '지남' : diffDays})`;
+
+  const link = document.createElement('a');
+  link.className = 'notification-link';
+  link.textContent = '이벤트 자세히 보기 →';
+  // 이벤트 id가 있으면 상세 페이지로 이동
+  if (ev.id) {
+    link.href = `event_detail.html?id=${encodeURIComponent(ev.id)}`;
+  } else {
+    link.href = '#';
+  }
+
+  footer.appendChild(time);
+  footer.appendChild(link);
+
+  content.appendChild(header);
+  content.appendChild(text);
+  content.appendChild(footer);
+
+  article.appendChild(icon);
+  article.appendChild(content);
+
+  // 카드 전체 클릭 시 읽음 처리
+  article.addEventListener('click', (e) => {
+    if (e.target === deleteBtn || e.target === link) return;
+    if (article.classList.contains('unread')) {
+      article.classList.remove('unread');
+    }
+  });
+
+  return article;
+}
+
+// 빈 상태 업데이트
+function updateEmptyState() {
+  const list = document.querySelector('.notification-list');
+  const empty = document.querySelector('.empty-state');
+  const cards = list ? list.querySelectorAll('.notification-card') : [];
+
+  if (!list || !empty) return;
+
+  if (cards.length === 0) {
+    list.style.display = 'none';
+    empty.style.display = 'block';
+  } else {
+    list.style.display = 'flex';
+    empty.style.display = 'none';
+  }
+}
+
+// 메인 렌더링
+async function renderFestivalNotifications() {
+  const list = document.querySelector('.notification-list');
+  const tabs = document.querySelector('.notification-tabs');
+
+  if (!list) return;
+
+  // 기존 샘플 알림/타임그룹 제거
+  list.innerHTML = '';
+
+  // 탭은 이번 기능에선 쓰지 않으니 숨김
+  if (tabs) tabs.style.display = 'none';
+
+  const userId = localStorage.getItem('userId');
+  if (!userId) {
+    const empty = document.querySelector('.empty-state');
+    if (empty) {
+      empty.style.display = 'block';
+      empty.querySelector('h3').textContent = '로그인이 필요합니다';
+      empty.querySelector('p').textContent = '관심 축제를 보려면 먼저 로그인해주세요.';
+    }
+    list.style.display = 'none';
+    return;
+  }
+
+  const userDataStr = localStorage.getItem(`userData_${userId}`);
+  if (!userDataStr) {
+    const empty = document.querySelector('.empty-state');
+    if (empty) {
+      empty.style.display = 'block';
+      empty.querySelector('h3').textContent = '관심 축제가 없습니다';
+      empty.querySelector('p').textContent = '마이페이지에서 축제를 찜해보세요.';
+    }
+    list.style.display = 'none';
+    return;
+  }
+
+  let userData;
+  try {
+    userData = JSON.parse(userDataStr);
+  } catch (e) {
+    console.error('userData 파싱 오류:', e);
+    showToast('사용자 데이터를 불러오는 중 오류가 발생했습니다.');
+    return;
+  }
+
+  const likedEvents = Array.isArray(userData.likedEvents) ? userData.likedEvents : [];
+  console.log('알림용 likedEvents:', likedEvents);
+
+  // 1주일 안에 시작하는 축제만 필터링
+  const upcoming = [];
+  likedEvents.forEach(ev => {
+    const startDate = getEventStartDate(ev);
+    if (!startDate) return;
+    const diffDays = calcDiffDays(startDate);
+    if (diffDays < 0 || diffDays > 7) return;
+
+    upcoming.push({
+      ...ev,
+      _startDate: startDate,
+      _diffDays: diffDays
+    });
+  });
+
+  // 시작일 기준 오름차순 정렬
+  upcoming.sort((a, b) => a._startDate - b._startDate);
+
+  if (upcoming.length === 0) {
+    const empty = document.querySelector('.empty-state');
+    if (empty) {
+      empty.style.display = 'block';
+      empty.querySelector('h3').textContent = '임박한 관심 축제가 없습니다';
+      empty.querySelector('p').textContent = '관심 축제의 시작일이 1주일 이내일 때 여기에서 알려드릴게요.';
+    }
+    list.style.display = 'none';
+    return;
+  }
+
+  // 타임 그룹 하나 만들기 (1주일 안에 시작하는 축제)
+  const group = document.createElement('div');
+  group.className = 'time-group';
+
+  const label = document.createElement('div');
+  label.className = 'time-label';
+  label.textContent = '1주일 안에 시작하는 관심 축제';
+
+  group.appendChild(label);
+
+  upcoming.forEach(ev => {
+    const card = createNotificationCard(ev);
+    if (card) group.appendChild(card);
+  });
+
+  list.appendChild(group);
+  updateEmptyState();
+
+  const pageTitle = document.querySelector('.page-title');
+  if (pageTitle) {
+    pageTitle.textContent = `🔔 알림 (임박한 축제 ${upcoming.length}개)`;
+  }
+
+  showToast(`1주일 안에 시작하는 관심 축제 ${upcoming.length}개를 찾았어요.`);
+}
+
+// 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', () => {
-    init();
-    console.log('알림 페이지 로드 완료');
-    
-    // 저장된 알림 상태 복원
-    const savedState = localStorage.getItem('notificationState');
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        const cards = Array.from(notificationCards);
-        
-        state.forEach((item, index) => {
-            if (cards[index]) {
-                if (item.isDeleted) {
-                    cards[index].remove();
-                } else if (item.isRead) {
-                    cards[index].classList.remove('unread');
-                }
-            }
-        });
-        
-        updateBadges();
-    }
+  console.log('알림 페이지 로드 완료 - 임박한 관심 축제 알림 모드');
+  renderFestivalNotifications();
 });
-
-// 반응형 네비게이션 (모바일)
-const createMobileMenu = () => {
-    const nav = document.querySelector('.nav');
-    const headerActions = document.querySelector('.header-actions');
-    
-    if (window.innerWidth <= 768) {
-        nav.style.display = 'none';
-        
-        // 햄버거 메뉴 버튼 생성
-        if (!document.querySelector('.mobile-menu-btn')) {
-            const menuBtn = document.createElement('button');
-            menuBtn.className = 'mobile-menu-btn icon-btn';
-            menuBtn.innerHTML = '☰';
-            menuBtn.onclick = () => {
-                nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
-            };
-            headerActions.insertBefore(menuBtn, headerActions.firstChild);
-        }
-    } else {
-        nav.style.display = 'flex';
-        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-        if (mobileMenuBtn) {
-            mobileMenuBtn.remove();
-        }
-    }
-};
-
-window.addEventListener('resize', createMobileMenu);
-createMobileMenu();
-
-console.log('Notification JavaScript 로드 완료 - 학번: 202300771');
