@@ -1,6 +1,6 @@
 <?php
-// 학번: 202300771 이름: 박성준
 // auth.php - 로그인/로그아웃/세션 체크 API
+// 사용자 맞춤형이라는 의의를 가집니다.
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
